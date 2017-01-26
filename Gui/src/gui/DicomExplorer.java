@@ -5,12 +5,11 @@
  */
 package gui;
 
+import mydicom.DicomFileContent;
 import imageProcessing.improvQualityDicom;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -18,33 +17,43 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JSlider;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import mydicom.DicomTools;
 import org.apache.commons.io.FilenameUtils;
-import mydicom.DataDICOM;
 
 /**
  *
  * @author Małgorzata
  */
-public class ReadDicom extends javax.swing.JFrame {
+public class DicomExplorer extends javax.swing.JFrame {
 
-    private String initialPath = "C:\\Users\\Małgorzata\\Desktop";
-    private File fname;
-    private FilenameFilter fileNameFilter;
-    private DefaultListModel model = new DefaultListModel();
-    private DataDICOM dataDicom = new DataDICOM();
+    private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan";
     
-    ScaleImage SCI = new ScaleImage();
+    private File fname;
+    private BufferedImage currentImg = null;
     improvQualityDicom iQD = new improvQualityDicom();
+    IconCellRenderer listRenderer = new IconCellRenderer();
 
-    public ReadDicom() {
+    public DicomExplorer() {
         initComponents();
+        fileList.setModel(new DefaultListModel<DicomFileContent>());
+        fileList.setCellRenderer(listRenderer);
+        fileList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent lse) {//metoda wartość zmian(argument lista wybranych wydarzeń)
+                Object o = fileList.getSelectedValue();//obiekt JList pobiera wybrane wartości
 
+                if (o instanceof DicomFileContent) {
+                    DicomFileContent fc = ((DicomFileContent) o);
+                    currentImg = fc.getImage();
+                    imagePanel.setIcon(new ImageIcon(currentImg));
+                    patientData.setText(fc.getData());
+                }
+            }
+        });
+        zoomSlider.addChangeListener(new ZoomSliderListener(imagePanel));
     }
 
     /**
@@ -57,55 +66,58 @@ public class ReadDicom extends javax.swing.JFrame {
     private void initComponents() {
 
         jFileChooser1 = new javax.swing.JFileChooser();
-        jPanel1 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        mainPanel = new javax.swing.JPanel();
+        imgScroll = new javax.swing.JScrollPane();
         imagePanel = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        fileList = new javax.swing.JList(model);
+        fileListScroll = new javax.swing.JScrollPane();
+        fileList = new javax.swing.JList<>();
         zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         patientData = new javax.swing.JLabel();
-        jMenuBar1 = new javax.swing.JMenuBar();
+        menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
-        openFileMenu = new javax.swing.JMenuItem();
-        savePNGMenu = new javax.swing.JMenuItem();
-        openDirMenu = new javax.swing.JMenuItem();
-        jMenuItem4 = new javax.swing.JMenuItem();
+        openFileMenuItem = new javax.swing.JMenuItem();
+        openDirMenuItem = new javax.swing.JMenuItem();
+        savePNGMenuItem = new javax.swing.JMenuItem();
+        separator = new javax.swing.JPopupMenu.Separator();
+        exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
+        optionsMenu = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
 
-        jPanel1.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel1.setToolTipText("");
+        mainPanel.setBackground(new java.awt.Color(0, 0, 0));
+        mainPanel.setToolTipText("");
 
-        jScrollPane1.setBackground(new java.awt.Color(0, 0, 0));
-        jScrollPane1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        imgScroll.setBackground(new java.awt.Color(0, 0, 0));
+        imgScroll.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         imagePanel.setBackground(new java.awt.Color(0, 0, 0));
         imagePanel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         imagePanel.setLabelFor(imagePanel);
         imagePanel.setOpaque(true);
-        jScrollPane1.setViewportView(imagePanel);
+        imgScroll.setViewportView(imagePanel);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
+        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
+        mainPanel.setLayout(mainPanelLayout);
+        mainPanelLayout.setHorizontalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(imgScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
+        mainPanelLayout.setVerticalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(imgScroll)
         );
 
-        jScrollPane2.setBackground(new java.awt.Color(0, 0, 0));
-        jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        fileListScroll.setBackground(new java.awt.Color(0, 0, 0));
+        fileListScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         fileList.setBackground(new java.awt.Color(0, 0, 0));
         fileList.setForeground(new java.awt.Color(244, 244, 244));
         fileList.setMaximumSize(new java.awt.Dimension(200, 200));
         fileList.setMinimumSize(new java.awt.Dimension(200, 200));
-        jScrollPane2.setViewportView(fileList);
+        fileListScroll.setViewportView(fileList);
 
         zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
         zoomSlider.setMajorTickSpacing(10);
@@ -121,42 +133,48 @@ public class ReadDicom extends javax.swing.JFrame {
         patientData.setBackground(new java.awt.Color(0, 0, 0));
         patientData.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         patientData.setAutoscrolls(true);
+        patientData.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 2, 2));
 
         fileMenu.setText("File");
 
-        openFileMenu.setText("Open");
-        openFileMenu.addActionListener(new java.awt.event.ActionListener() {
+        openFileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, 0));
+        openFileMenuItem.setText("Open file");
+        openFileMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openFileMenuActionPerformed(evt);
+                openFileMenuItemActionPerformed(evt);
             }
         });
-        fileMenu.add(openFileMenu);
+        fileMenu.add(openFileMenuItem);
 
-        savePNGMenu.setText("Save(as png)");
-        savePNGMenu.addActionListener(new java.awt.event.ActionListener() {
+        openDirMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, 0));
+        openDirMenuItem.setText("Open Directory");
+        openDirMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                savePNGMenuActionPerformed(evt);
+                openDirMenuItemActionPerformed(evt);
             }
         });
-        fileMenu.add(savePNGMenu);
+        fileMenu.add(openDirMenuItem);
 
-        openDirMenu.setText("Open Directory");
-        openDirMenu.addActionListener(new java.awt.event.ActionListener() {
+        savePNGMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, 0));
+        savePNGMenuItem.setText("Save(as png)");
+        savePNGMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openDirMenuActionPerformed(evt);
+                savePNGMenuItemActionPerformed(evt);
             }
         });
-        fileMenu.add(openDirMenu);
+        fileMenu.add(savePNGMenuItem);
+        fileMenu.add(separator);
 
-        jMenuItem4.setText("jMenuItem4");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+        exitMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, 0));
+        exitMenuItem.setText("Exit");
+        exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
+                exitMenuItemActionPerformed(evt);
             }
         });
-        fileMenu.add(jMenuItem4);
+        fileMenu.add(exitMenuItem);
 
-        jMenuBar1.add(fileMenu);
+        menuBar.add(fileMenu);
 
         editMenu.setText("Edit");
         editMenu.addActionListener(new java.awt.event.ActionListener() {
@@ -164,9 +182,21 @@ public class ReadDicom extends javax.swing.JFrame {
                 editMenuActionPerformed(evt);
             }
         });
-        jMenuBar1.add(editMenu);
+        menuBar.add(editMenu);
 
-        setJMenuBar(jMenuBar1);
+        optionsMenu.setText("Options");
+
+        jMenuItem1.setText("Switch List View");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        optionsMenu.add(jMenuItem1);
+
+        menuBar.add(optionsMenu);
+
+        setJMenuBar(menuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -174,11 +204,11 @@ public class ReadDicom extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
+                    .addComponent(fileListScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
                     .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))))
@@ -190,9 +220,9 @@ public class ReadDicom extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
+                        .addComponent(fileListScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -205,7 +235,7 @@ public class ReadDicom extends javax.swing.JFrame {
 
     }//GEN-LAST:event_editMenuActionPerformed
 
-    private void openFileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuActionPerformed
+    private void openFileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuItemActionPerformed
         //Gui odczyt=new Tools();
         //EqualizationHistogram histEQ = new EqualizationHistogram();
         JFileChooser chooser = new JFileChooser(new File(initialPath));
@@ -215,18 +245,21 @@ public class ReadDicom extends javax.swing.JFrame {
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             fname = chooser.getSelectedFile();
+            initialPath = fname.getPath();
             try {
-                ImageIcon iconS = new ImageIcon(iQD.endImage(fname));
+                currentImg = iQD.endImage(fname);
+                ImageIcon iconS = new ImageIcon(currentImg);
                 imagePanel.setIcon(iconS);
-                patientData.setText(dataDicom.dataInf(fname.getName()));
+                patientData.setText(DicomTools.dataInf(fname.getName()));
+                ((DefaultListModel) fileList.getModel()).removeAllElements();
                 System.out.println("nazwa wybranego pliku" + fname.getName());
             } catch (Exception ex) {
-                Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }//GEN-LAST:event_openFileMenuActionPerformed
+    }//GEN-LAST:event_openFileMenuItemActionPerformed
 
-    private void savePNGMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savePNGMenuActionPerformed
+    private void savePNGMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savePNGMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileFilter(new FileNameExtensionFilter(".png", "png"));
         int result = chooser.showSaveDialog(null);
@@ -251,95 +284,41 @@ public class ReadDicom extends javax.swing.JFrame {
                 System.out.println("empty");
             }
         }
-    }//GEN-LAST:event_savePNGMenuActionPerformed
+    }//GEN-LAST:event_savePNGMenuItemActionPerformed
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+    private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
         System.exit(1);
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
+    }//GEN-LAST:event_exitMenuItemActionPerformed
 
-    private void openDirMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openDirMenuActionPerformed
-
-        IconCellRenderer render = new IconCellRenderer();
-        fileList.setCellRenderer(render);
+    private void openDirMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openDirMenuItemActionPerformed
 
         JFileChooser chooser = new JFileChooser(new File(initialPath));
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "DCOM Images", "dcm");
-        chooser.setFileFilter(filter);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
             fname = chooser.getSelectedFile();
-            final File dir = fname.getParentFile();//ścieszka
+            initialPath = fname.getPath();
+            File dir = fname.isFile() ? fname.getParentFile() : fname;
             try {
-                final ArrayList<DCMDirItem> list = Tools.readDicomDir(dir, model);
-                fileList.setModel(model);
-
-                ListSelectionListener listener = new ListSelectionListener() {
-                    @Override
-                    public void valueChanged(ListSelectionEvent lse) {//metoda wartość zmian(argument lista wybranych wydarzeń)
-                        Object o = fileList.getSelectedValue();//obiekt JList pobiera wybrane wartości
-                        if (o instanceof BufferedImage) {
-                            String fn;//nazwa wybranego pliku
-                            imagePanel.setIcon(new ImageIcon((BufferedImage) o));
-                            //zrobione w celu porównania wartośći wybranej do jakiego pliku należy
-                            //aby wyciagnac jego nazwe
-                            int i=0;
-                            for (DCMDirItem item : list) {
-                                i++;
-                                if( item == null )
-                                    System.err.println( "Dir list, null at " + i );
-                                else if( item.getItem() == null )
-                                    System.err.println( "Dir list, item.getItem() == null at " + i + " item.getName()=" + item.getName());
-                                else {
-                                    if (item.getItem().equals(o)) {
-                                    fn = item.getName();
-                                    try {
-                                        patientData.setText(dataDicom.dataInf(fn));
-                                    } catch (Exception ex) {
-                                        Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                }
-                                }
-                            }
-                        }
-                    }
-
-                };
-
-                fileList.addListSelectionListener(listener);
+                DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel());
             } catch (Exception ex) {
-                Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }//GEN-LAST:event_openDirMenuActionPerformed
+    }//GEN-LAST:event_openDirMenuItemActionPerformed
 
     private void zoomSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_zoomSliderStateChanged
 
-        BufferedImage inO = SCI.getPicture(imagePanel);
-
-        zoomSlider.addChangeListener(new ChangeListener() {
-            BufferedImage obrazek = inO;
-
-            @Override
-            public void stateChanged(ChangeEvent ce) {
-                final double range = ((JSlider) ce.getSource()).getValue();
-//            System.out.println("range "+range);
-                final double multi = (range / 100);
-//            System.out.println("multi "+multi);
-//            final BufferedImage obrazek = SCI.getPicture(jLabel1);
-                try {
-                    BufferedImage ob = obrazek;
-//                System.out.println("obrazek "+ob);
-                    BufferedImage sc = SCI.makeImage(ob, multi, multi);
-                    ImageIcon iconS = new ImageIcon(sc);
-                    imagePanel.setIcon(iconS);
-                } catch (Exception ex) {
-                    Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+        if (currentImg != null) {
+            ((ZoomSliderListener)zoomSlider.getChangeListeners()[0]).updateImg(currentImg);
+        }
     }//GEN-LAST:event_zoomSliderStateChanged
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        listRenderer.switchView();
+        fileList.repaint();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -358,40 +337,44 @@ public class ReadDicom extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ReadDicom.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DicomExplorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ReadDicom.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DicomExplorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ReadDicom.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DicomExplorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ReadDicom.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(DicomExplorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new ReadDicom().setVisible(true);
+                new DicomExplorer().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu editMenu;
-    private javax.swing.JList<String> fileList;
+    private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JList<DicomFileContent> fileList;
+    private javax.swing.JScrollPane fileListScroll;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JLabel imagePanel;
+    private javax.swing.JScrollPane imgScroll;
     private javax.swing.JFileChooser jFileChooser1;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JMenuItem openDirMenu;
-    private javax.swing.JMenuItem openFileMenu;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JPanel mainPanel;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenuItem openDirMenuItem;
+    private javax.swing.JMenuItem openFileMenuItem;
+    private javax.swing.JMenu optionsMenu;
     private javax.swing.JLabel patientData;
-    private javax.swing.JMenuItem savePNGMenu;
+    private javax.swing.JMenuItem savePNGMenuItem;
+    private javax.swing.JPopupMenu.Separator separator;
     private javax.swing.JSlider zoomSlider;
     // End of variables declaration//GEN-END:variables
 

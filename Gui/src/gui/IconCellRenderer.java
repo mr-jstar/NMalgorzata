@@ -5,6 +5,7 @@
  */
 package gui;
 
+import mydicom.DicomFileContent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
@@ -13,13 +14,19 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 class IconCellRenderer extends DefaultListCellRenderer {
 
-    // private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private int size;
     private BufferedImage icon;
     public static int defaultIconSize = 200;
+    private boolean showText;
+
+    private static Border focusBorder = LineBorder.createGrayLineBorder();
 
     IconCellRenderer() {//określenie wielkości obrazka
         this(defaultIconSize);
@@ -28,6 +35,10 @@ class IconCellRenderer extends DefaultListCellRenderer {
     IconCellRenderer(int size) {//nadanie okreslonego rozmiaru obrazkowi 
         this.size = size;
         icon = new BufferedImage(size, size, BufferedImage.TYPE_USHORT_GRAY);
+    }
+
+    public void switchView() {
+        showText = !showText;
     }
 
     //list - The JList we're painting.
@@ -44,12 +55,13 @@ class IconCellRenderer extends DefaultListCellRenderer {
             boolean cellHasFocus) {
         Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         //tworzony jest obiekt typu component który zawiera w sobie konstruktor bazowy- super
-        if (c instanceof JLabel && value instanceof BufferedImage) {//jesli w obiekcie wystepuja te 3 rzeczy to:
+        if (!showText && c instanceof JLabel && value instanceof DicomFileContent) {//jesli w obiekcie wystepuja te 3 rzeczy to:
             JLabel l = (JLabel) c;//tworzony jest nowy obiekt jLabel z komponentu c
-            l.setText("");//nie wyswietla ten jLabel nic
-            BufferedImage i = (BufferedImage) value;//buffforowana jest wartość value
+            l.setText("");
+            BufferedImage i = ((DicomFileContent) value).getImage();//buffforowana jest wartość value
             l.setIcon(new ImageIcon(icon));//i ustawiany jest obraz w jLabel poprzez 
-            //konstruktor IconCellRenderer o ustalonym rozmiarze i typie wyświtlenia
+            list.setFixedCellWidth(size);
+            list.setFixedCellHeight(size);
 
             Graphics2D g = icon.createGraphics();
             g.setColor(new Color(0, 0, 0, 0));
@@ -57,6 +69,10 @@ class IconCellRenderer extends DefaultListCellRenderer {
             g.drawImage(i, 0, 0, size, size, this);
 
             g.dispose();
+        } else {
+            JLabel l = (JLabel) c;
+            list.setPrototypeCellValue(l.getText());
+            l.setBorder(cellHasFocus ? focusBorder : noFocusBorder);
         }
         return c;
     }
