@@ -33,12 +33,13 @@ import mydicom.DataDICOM;
  */
 public class ReadDicom extends javax.swing.JFrame {
 
-    File fname;
-    FilenameFilter fileNameFilter;
-    Tools odczyt = new Tools();
-    DefaultListModel model = new DefaultListModel();//gdy nie dodałam inicjalizaci wystepował bład
-    DataDICOM dataDicom = new DataDICOM();//obiekt który znajduje sie w innym Packages
-    scaleImage SCI = new scaleImage();
+    private String initialPath = "C:\\Users\\Małgorzata\\Desktop";
+    private File fname;
+    private FilenameFilter fileNameFilter;
+    private DefaultListModel model = new DefaultListModel();
+    private DataDICOM dataDicom = new DataDICOM();
+    
+    ScaleImage SCI = new ScaleImage();
     improvQualityDicom iQD = new improvQualityDicom();
 
     public ReadDicom() {
@@ -66,10 +67,10 @@ public class ReadDicom extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openFileMenu = new javax.swing.JMenuItem();
-        saveJPGMenu = new javax.swing.JMenuItem();
+        savePNGMenu = new javax.swing.JMenuItem();
         openDirMenu = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        editMenu = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
@@ -131,13 +132,13 @@ public class ReadDicom extends javax.swing.JFrame {
         });
         fileMenu.add(openFileMenu);
 
-        saveJPGMenu.setText("Save(as jpng)");
-        saveJPGMenu.addActionListener(new java.awt.event.ActionListener() {
+        savePNGMenu.setText("Save(as png)");
+        savePNGMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveJPGMenuActionPerformed(evt);
+                savePNGMenuActionPerformed(evt);
             }
         });
-        fileMenu.add(saveJPGMenu);
+        fileMenu.add(savePNGMenu);
 
         openDirMenu.setText("Open Directory");
         openDirMenu.addActionListener(new java.awt.event.ActionListener() {
@@ -157,13 +158,13 @@ public class ReadDicom extends javax.swing.JFrame {
 
         jMenuBar1.add(fileMenu);
 
-        jMenu2.setText("Edit");
-        jMenu2.addActionListener(new java.awt.event.ActionListener() {
+        editMenu.setText("Edit");
+        editMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenu2ActionPerformed(evt);
+                editMenuActionPerformed(evt);
             }
         });
-        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(editMenu);
 
         setJMenuBar(jMenuBar1);
 
@@ -200,23 +201,21 @@ public class ReadDicom extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jMenu2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu2ActionPerformed
+    private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
 
-    }//GEN-LAST:event_jMenu2ActionPerformed
+    }//GEN-LAST:event_editMenuActionPerformed
 
     private void openFileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuActionPerformed
         //Gui odczyt=new Tools();
         //EqualizationHistogram histEQ = new EqualizationHistogram();
-        JFileChooser chooser = new JFileChooser(new File("C:\\Users\\Małgorzata\\Desktop"));
+        JFileChooser chooser = new JFileChooser(new File(initialPath));
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "PNG & DCOM Images ale tak na serio nie otwiera PNG", "dcm");
+                "DCOM Images", "dcm");
         chooser.setFileFilter(filter);
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            //System.out.println("multi ");
             fname = chooser.getSelectedFile();
             try {
-//           ImageIcon iconS= new ImageIcon(odczyt.openDicomFile(fname));
                 ImageIcon iconS = new ImageIcon(iQD.endImage(fname));
                 imagePanel.setIcon(iconS);
                 patientData.setText(dataDicom.dataInf(fname.getName()));
@@ -225,11 +224,10 @@ public class ReadDicom extends javax.swing.JFrame {
                 Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-//    SCI.getSlider(jLabel1, jSlider1);
     }//GEN-LAST:event_openFileMenuActionPerformed
 
-    private void saveJPGMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveJPGMenuActionPerformed
-        JFileChooser chooser = new JFileChooser(new File("C:\\Users\\Małgorzata\\Desktop"));
+    private void savePNGMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savePNGMenuActionPerformed
+        JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileFilter(new FileNameExtensionFilter(".png", "png"));
         int result = chooser.showSaveDialog(null);
         if (imagePanel.getIcon() != null) {//sprawdza czy cos jest w 
@@ -253,7 +251,7 @@ public class ReadDicom extends javax.swing.JFrame {
                 System.out.println("empty");
             }
         }
-    }//GEN-LAST:event_saveJPGMenuActionPerformed
+    }//GEN-LAST:event_savePNGMenuActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         System.exit(1);
@@ -264,9 +262,9 @@ public class ReadDicom extends javax.swing.JFrame {
         IconCellRenderer render = new IconCellRenderer();
         fileList.setCellRenderer(render);
 
-        JFileChooser chooser = new JFileChooser(new File("C:\\Users\\Małgorzata\\Desktop"));
+        JFileChooser chooser = new JFileChooser(new File(initialPath));
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "PNG & DCOM Images ale tak na serio nie otwiera PNG", "dcm");
+                "DCOM Images", "dcm");
         chooser.setFileFilter(filter);
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -286,14 +284,22 @@ public class ReadDicom extends javax.swing.JFrame {
                             imagePanel.setIcon(new ImageIcon((BufferedImage) o));
                             //zrobione w celu porównania wartośći wybranej do jakiego pliku należy
                             //aby wyciagnac jego nazwe
+                            int i=0;
                             for (DCMDirItem item : list) {
-                                if (item.getItem().equals(o)) {
+                                i++;
+                                if( item == null )
+                                    System.err.println( "Dir list, null at " + i );
+                                else if( item.getItem() == null )
+                                    System.err.println( "Dir list, item.getItem() == null at " + i + " item.getName()=" + item.getName());
+                                else {
+                                    if (item.getItem().equals(o)) {
                                     fn = item.getName();
                                     try {
                                         patientData.setText(dataDicom.dataInf(fn));
                                     } catch (Exception ex) {
                                         Logger.getLogger(ReadDicom.class.getName()).log(Level.SEVERE, null, ex);
                                     }
+                                }
                                 }
                             }
                         }
@@ -310,10 +316,10 @@ public class ReadDicom extends javax.swing.JFrame {
 
     private void zoomSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_zoomSliderStateChanged
 
-        final BufferedImage inO = SCI.getPicture(imagePanel);
+        BufferedImage inO = SCI.getPicture(imagePanel);
 
         zoomSlider.addChangeListener(new ChangeListener() {
-            final BufferedImage obrazek = inO;
+            BufferedImage obrazek = inO;
 
             @Override
             public void stateChanged(ChangeEvent ce) {
@@ -372,11 +378,11 @@ public class ReadDicom extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenu editMenu;
     private javax.swing.JList<String> fileList;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JLabel imagePanel;
     private javax.swing.JFileChooser jFileChooser1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
@@ -385,7 +391,7 @@ public class ReadDicom extends javax.swing.JFrame {
     private javax.swing.JMenuItem openDirMenu;
     private javax.swing.JMenuItem openFileMenu;
     private javax.swing.JLabel patientData;
-    private javax.swing.JMenuItem saveJPGMenu;
+    private javax.swing.JMenuItem savePNGMenu;
     private javax.swing.JSlider zoomSlider;
     // End of variables declaration//GEN-END:variables
 

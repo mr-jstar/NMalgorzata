@@ -6,7 +6,7 @@
 package gui;
 
 /**
- *
+ * Item (dicom file) 
  * @author jstar
  */
 public class DCMDirItem {
