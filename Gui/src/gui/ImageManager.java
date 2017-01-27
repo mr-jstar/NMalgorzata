@@ -53,7 +53,7 @@ public class ImageManager implements Iterable<BufferedImageOp> {
     }
 
     public void repaint(double scale) {
-        System.err.println("ImageManager::repaint");
+        //System.err.println("ImageManager::repaint");
         if (img == null) {
             return;
         }

@@ -196,18 +196,17 @@ public class DicomTools {
                     }
                     bImg = new BufferedImage(cols, rows, BufferedImage.TYPE_USHORT_GRAY);
                     Graphics2D cg = bImg.createGraphics();
-                    short maxpi= 0;
+                    final int MX = 2*Short.MAX_VALUE;
+                    //System.err.println("MX="+MX);
                     for (int i = 0; i < ldata.length; i++) {
                         int x = i % cols;
                         int y = i / cols;
                         short hounsfield = ldata[i];
                         hounsfield = (short) (hounsfield * slope + intercept);
                         double hd = (hounsfield + 1000) / 4000.0;
-                        short pi = (short) (2 * Short.MAX_VALUE * hd);
-                        if( pi > maxpi ) maxpi = pi;
+                        short pi = (short) ( MX * hd);
                         bImg.setRGB(x, y, pi );
                     }
-                    System.err.println( "max=" + maxpi );
                 }
             }
         }

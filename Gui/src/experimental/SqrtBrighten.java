@@ -3,49 +3,52 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package imageProcessing;
+package experimental;
 
+import experimental.MyLookUp;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
+import java.awt.image.ByteLookupTable;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
-import java.awt.image.RescaleOp;
+import java.awt.image.LookupTable;
 
 /**
  *
  * @author jstar
  */
-public class ContrastEnhancer implements BufferedImageOp {
+public class SqrtBrighten implements BufferedImageOp {
+    
+    private static final byte[] data = new byte[256];
 
-    private final float scale;
-    private final float offset;
-
-    public ContrastEnhancer(float scale, float offset) {
-        this.scale = scale;
-        this.offset = offset;
+    static {
+        for (int i = 0; i < 256; i++) {
+            data[i] = (byte) (Math.sqrt((float) i / 255) * 255);
+        }
     }
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        RescaleOp operator = new RescaleOp(scale, offset, null);
-        return operator.filter(input, output);
+        LookupTable table = new ByteLookupTable(0, data);
+        MyLookUp op = new MyLookUp(table, null);
+        return op.filter(input, output);
     }
 
     @Override
     public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0,0,src.getWidth(),src.getHeight());
+        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
     }
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if( src.getColorModel().equals(destCM)) 
+        if (src.getColorModel().equals(destCM)) {
             return src;
-        else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(),null);
+        } else {
+            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
             return op.filter(src, null);
         }
     }
@@ -60,9 +63,9 @@ public class ContrastEnhancer implements BufferedImageOp {
     public RenderingHints getRenderingHints() {
         return null;
     }
-    
-        @Override
+
+    @Override
     public String toString() {
-        return "ContrastEnhancer";
+        return "Sqrt Brighten";
     }
 }

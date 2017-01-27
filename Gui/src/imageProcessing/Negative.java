@@ -23,7 +23,7 @@ public class Negative implements BufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        RescaleOp operator = new RescaleOp(-1f, 255f, null);
+        RescaleOp operator = new RescaleOp(-1f, (float)(1<<16-1), null);
         return operator.filter(input, output);
     }
 

@@ -13,42 +13,39 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
-import java.awt.image.LookupOp;
-import java.awt.image.ShortLookupTable;
+import java.awt.image.RescaleOp;
 
 /**
  *
  * @author jstar
  */
-public class SqrtBrighten implements BufferedImageOp {
+public class BrightnessEnhancer implements BufferedImageOp {
 
-    private static final short[] data = new short[Short.MAX_VALUE];
+    private final float scale;
+    private final float offset;
 
-    static {
-        for (int i = 0; i < Short.MAX_VALUE; i++) {
-            data[i] = (short) (Math.sqrt((float) i / Short.MAX_VALUE) * Short.MAX_VALUE);
-            System.err.println( i + " -> " + data[i] );
-        }
+    public BrightnessEnhancer(float scale, float offset) {
+        this.scale = scale;
+        this.offset = offset;
     }
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        ShortLookupTable table = new ShortLookupTable(0, data);
-        LookupOp op = new LookupOp(table, null);
-        return op.filter(input, output);
+        RescaleOp operator = new RescaleOp(scale, offset, null);
+        return operator.filter(input, output);
     }
 
     @Override
     public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
+        return new Rectangle(0,0,src.getWidth(),src.getHeight());
     }
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
+        if( src.getColorModel().equals(destCM)) 
             return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
+        else {
+            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(),null);
             return op.filter(src, null);
         }
     }
@@ -63,9 +60,9 @@ public class SqrtBrighten implements BufferedImageOp {
     public RenderingHints getRenderingHints() {
         return null;
     }
-
-    @Override
+    
+        @Override
     public String toString() {
-        return "Sqrt Brighten";
+        return "ContrastEnhancer";
     }
 }
