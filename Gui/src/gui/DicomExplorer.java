@@ -5,11 +5,17 @@
  */
 package gui;
 
+import imageProcessing.ContrastEnhancer;
+import imageProcessing.GaussianFilter;
+import imageProcessing.HistogramEqualizationFilter;
+import imageProcessing.Negative;
+import imageProcessing.SqrtBrighten;
 import mydicom.DicomFileContent;
-import imageProcessing.improvQualityDicom;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.File;
+import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -17,6 +23,7 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -32,19 +39,33 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan";
 
-    private File fname;
+    private File file;
     private BufferedImage currentImg = null;
-    private final improvQualityDicom iQD = new improvQualityDicom();
     private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
     private final ImageManager iManager;
     private ContrastEnhancer contrast;
+    private HistogramEqualizationFilter equalizer;
+    private GaussianFilter gaussian;
+    private Negative negative;
+    private SqrtBrighten sqrtBrighten;
 
     public DicomExplorer() {
         initComponents();
         iManager = new ImageManager(imagePanel);
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
+        Hashtable labels = new Hashtable();
+        labels.put(20, new JLabel("1:5"));
+        labels.put(100, new JLabel("1:1"));
+        labels.put(300, new JLabel("3:1"));
+        labels.put(500, new JLabel("5:1"));
+        zoomSlider.setLabelTable(labels);
+
+        labels = new Hashtable();
+        labels.put(20, new JLabel("normal"));
+        labels.put(contrastSlider.getMaximum(), new JLabel("extreme"));
+        contrastSlider.setLabelTable(labels);
 
         fileList.setModel(new DefaultListModel<DicomFileContent>());
         fileList.setCellRenderer(listRenderer);
@@ -57,7 +78,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                     DicomFileContent fc = ((DicomFileContent) o);
                     currentImg = fc.getImage();
                     iManager.updateImg(currentImg);
-                    zoomer.stateChanged(new ChangeEvent(zoomSlider));
+                    iManager.repaint(zoomer.getCurrentScale());
                     patientData.setText(fc.getData());
 
                 }
@@ -75,81 +96,128 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void initComponents() {
 
         jFileChooser1 = new javax.swing.JFileChooser();
-        mainPanel = new javax.swing.JPanel();
-        imgScroll = new javax.swing.JScrollPane();
-        imagePanel = new javax.swing.JLabel();
+        filePanel = new javax.swing.JPanel();
         fileListScroll = new javax.swing.JScrollPane();
         fileList = new javax.swing.JList<>();
-        contrastSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         patientData = new javax.swing.JLabel();
-        zoomInit = new javax.swing.JButton();
-        zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        filesTitle = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        mainPanel = new javax.swing.JPanel();
+        controlPanel = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        zoomPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        zoomInit = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        contrastPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
+        contrastSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        jLabel4 = new javax.swing.JLabel();
+        imgScroll = new javax.swing.JScrollPane();
+        imagePanel = new javax.swing.JLabel();
+        statusPanel = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        status = new javax.swing.JLabel();
+        rightPanel = new javax.swing.JPanel();
+        leftPanel = new javax.swing.JPanel();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openFileMenuItem = new javax.swing.JMenuItem();
         openDirMenuItem = new javax.swing.JMenuItem();
+        separator1 = new javax.swing.JPopupMenu.Separator();
         savePNGMenuItem = new javax.swing.JMenuItem();
-        separator = new javax.swing.JPopupMenu.Separator();
+        separator2 = new javax.swing.JPopupMenu.Separator();
         exitMenuItem = new javax.swing.JMenuItem();
-        editMenu = new javax.swing.JMenu();
+        filterMenu = new javax.swing.JMenu();
+        histEqualizationItem = new javax.swing.JMenuItem();
+        gaussianFilterItem = new javax.swing.JMenuItem();
+        negativeItem = new javax.swing.JMenuItem();
+        sqrtBrightenItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
         switchListViewItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
 
-        mainPanel.setBackground(new java.awt.Color(0, 0, 0));
-        mainPanel.setToolTipText("");
-
-        imgScroll.setBackground(new java.awt.Color(0, 0, 0));
-        imgScroll.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        imagePanel.setBackground(new java.awt.Color(0, 0, 0));
-        imagePanel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        imagePanel.setLabelFor(imagePanel);
-        imagePanel.setOpaque(true);
-        imgScroll.setViewportView(imagePanel);
-
-        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
-        mainPanel.setLayout(mainPanelLayout);
-        mainPanelLayout.setHorizontalGroup(
-            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(imgScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 663, Short.MAX_VALUE)
-        );
-        mainPanelLayout.setVerticalGroup(
-            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(imgScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 670, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        filePanel.setMaximumSize(new java.awt.Dimension(180, 2048));
+        filePanel.setMinimumSize(new java.awt.Dimension(180, 140));
+        filePanel.setPreferredSize(new java.awt.Dimension(180, 600));
+        filePanel.setLayout(new java.awt.BorderLayout());
 
         fileListScroll.setBackground(new java.awt.Color(0, 0, 0));
         fileListScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         fileList.setBackground(new java.awt.Color(0, 0, 0));
         fileList.setForeground(new java.awt.Color(244, 244, 244));
-        fileList.setMaximumSize(new java.awt.Dimension(200, 200));
-        fileList.setMinimumSize(new java.awt.Dimension(200, 200));
+        fileList.setMaximumSize(new java.awt.Dimension(100, 100));
+        fileList.setMinimumSize(new java.awt.Dimension(100, 100));
         fileListScroll.setViewportView(fileList);
 
-        contrastSlider.setForeground(new java.awt.Color(0, 0, 0));
-        contrastSlider.setMajorTickSpacing(20);
-        contrastSlider.setMinimum(20);
-        contrastSlider.setPaintTicks(true);
-        contrastSlider.setToolTipText("");
-        contrastSlider.setValue(20);
-        contrastSlider.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                contrastSliderStateChanged(evt);
-            }
-        });
+        filePanel.add(fileListScroll, java.awt.BorderLayout.CENTER);
 
         patientData.setBackground(new java.awt.Color(0, 0, 0));
         patientData.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         patientData.setAutoscrolls(true);
         patientData.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 2, 2));
+        patientData.setMaximumSize(new java.awt.Dimension(180, 300));
+        patientData.setMinimumSize(new java.awt.Dimension(180, 100));
+        patientData.setPreferredSize(new java.awt.Dimension(180, 300));
+        filePanel.add(patientData, java.awt.BorderLayout.SOUTH);
+
+        filesTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        filesTitle.setText("Files");
+        filePanel.add(filesTitle, java.awt.BorderLayout.PAGE_START);
+
+        jPanel1.setMaximumSize(new java.awt.Dimension(20, 32767));
+        jPanel1.setMinimumSize(new java.awt.Dimension(20, 0));
+        jPanel1.setPreferredSize(new java.awt.Dimension(20, 564));
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 531, Short.MAX_VALUE)
+        );
+
+        filePanel.add(jPanel1, java.awt.BorderLayout.WEST);
+
+        getContentPane().add(filePanel, java.awt.BorderLayout.WEST);
+
+        mainPanel.setBackground(new java.awt.Color(0, 0, 0));
+        mainPanel.setToolTipText("");
+        mainPanel.setMaximumSize(new java.awt.Dimension(2200, 2500));
+        mainPanel.setMinimumSize(new java.awt.Dimension(300, 400));
+        mainPanel.setPreferredSize(new java.awt.Dimension(820, 720));
+        mainPanel.setLayout(new java.awt.BorderLayout());
+
+        controlPanel.setMaximumSize(new java.awt.Dimension(100, 80));
+        controlPanel.setMinimumSize(new java.awt.Dimension(300, 80));
+        controlPanel.setPreferredSize(new java.awt.Dimension(800, 80));
+
+        jLabel5.setText("          ");
+        controlPanel.add(jLabel5);
+
+        zoomPanel.setLayout(new java.awt.BorderLayout());
+
+        jLabel1.setText("Zoom:");
+        zoomPanel.add(jLabel1, java.awt.BorderLayout.WEST);
+
+        zoomSlider.setFont(new java.awt.Font("Ubuntu", 0, 15)); // NOI18N
+        zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
+        zoomSlider.setMaximum(500);
+        zoomSlider.setMinimum(20);
+        zoomSlider.setMinorTickSpacing(20);
+        zoomSlider.setPaintLabels(true);
+        zoomSlider.setPaintTicks(true);
+        zoomSlider.setPaintTrack(false);
+        zoomSlider.setToolTipText("");
+        zoomSlider.setValue(100);
+        zoomPanel.add(zoomSlider, java.awt.BorderLayout.CENTER);
 
         zoomInit.setText("1:1");
         zoomInit.addActionListener(new java.awt.event.ActionListener() {
@@ -157,22 +225,124 @@ public class DicomExplorer extends javax.swing.JFrame {
                 zoomInitActionPerformed(evt);
             }
         });
+        zoomPanel.add(zoomInit, java.awt.BorderLayout.EAST);
 
-        zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
-        zoomSlider.setMajorTickSpacing(10);
-        zoomSlider.setMaximum(500);
-        zoomSlider.setMinimum(20);
-        zoomSlider.setPaintTicks(true);
-        zoomSlider.setToolTipText("");
-        zoomSlider.setValue(100);
+        controlPanel.add(zoomPanel);
 
-        jLabel1.setText("Zoom:");
+        jLabel3.setText("          ");
+        controlPanel.add(jLabel3);
 
-        jLabel2.setText("Contrast");
+        contrastPanel.setLayout(new java.awt.BorderLayout());
+
+        jLabel2.setText("Contrast: ");
+        contrastPanel.add(jLabel2, java.awt.BorderLayout.WEST);
+
+        contrastSlider.setForeground(new java.awt.Color(0, 0, 0));
+        contrastSlider.setMinimum(20);
+        contrastSlider.setMinorTickSpacing(20);
+        contrastSlider.setPaintLabels(true);
+        contrastSlider.setPaintTicks(true);
+        contrastSlider.setToolTipText("");
+        contrastSlider.setValue(20);
+        contrastSlider.setAutoscrolls(true);
+        contrastSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                contrastSliderStateChanged(evt);
+            }
+        });
+        contrastPanel.add(contrastSlider, java.awt.BorderLayout.EAST);
+
+        controlPanel.add(contrastPanel);
+
+        jLabel4.setText("          ");
+        controlPanel.add(jLabel4);
+
+        mainPanel.add(controlPanel, java.awt.BorderLayout.NORTH);
+
+        imgScroll.setBackground(new java.awt.Color(0, 0, 0));
+        imgScroll.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        imgScroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        imgScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        imgScroll.setAutoscrolls(true);
+        imgScroll.setMaximumSize(new java.awt.Dimension(2080, 2080));
+        imgScroll.setMinimumSize(new java.awt.Dimension(96, 96));
+        imgScroll.setPreferredSize(new java.awt.Dimension(544, 544));
+
+        imagePanel.setBackground(new java.awt.Color(0, 0, 0));
+        imagePanel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        imagePanel.setLabelFor(imagePanel);
+        imagePanel.setMaximumSize(new java.awt.Dimension(2048, 2048));
+        imagePanel.setMinimumSize(new java.awt.Dimension(64, 64));
+        imagePanel.setOpaque(true);
+        imgScroll.setViewportView(imagePanel);
+
+        mainPanel.add(imgScroll, java.awt.BorderLayout.CENTER);
+
+        statusPanel.setMaximumSize(new java.awt.Dimension(32767, 20));
+        statusPanel.setMinimumSize(new java.awt.Dimension(0, 20));
+        statusPanel.setPreferredSize(new java.awt.Dimension(512, 20));
+        statusPanel.setLayout(new java.awt.BorderLayout());
+
+        jPanel2.setPreferredSize(new java.awt.Dimension(20, 20));
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+
+        statusPanel.add(jPanel2, java.awt.BorderLayout.WEST);
+
+        status.setFont(new java.awt.Font("Ubuntu", 0, 12)); // NOI18N
+        status.setText("Applied filters:");
+        statusPanel.add(status, java.awt.BorderLayout.CENTER);
+
+        mainPanel.add(statusPanel, java.awt.BorderLayout.SOUTH);
+
+        rightPanel.setMaximumSize(new java.awt.Dimension(20, 32767));
+        rightPanel.setMinimumSize(new java.awt.Dimension(20, 0));
+        rightPanel.setPreferredSize(new java.awt.Dimension(20, 780));
+
+        javax.swing.GroupLayout rightPanelLayout = new javax.swing.GroupLayout(rightPanel);
+        rightPanel.setLayout(rightPanelLayout);
+        rightPanelLayout.setHorizontalGroup(
+            rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+        rightPanelLayout.setVerticalGroup(
+            rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 748, Short.MAX_VALUE)
+        );
+
+        mainPanel.add(rightPanel, java.awt.BorderLayout.LINE_END);
+
+        leftPanel.setMaximumSize(new java.awt.Dimension(20, 32767));
+        leftPanel.setMinimumSize(new java.awt.Dimension(20, 0));
+        leftPanel.setPreferredSize(new java.awt.Dimension(20, 780));
+
+        javax.swing.GroupLayout leftPanelLayout = new javax.swing.GroupLayout(leftPanel);
+        leftPanel.setLayout(leftPanelLayout);
+        leftPanelLayout.setHorizontalGroup(
+            leftPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 20, Short.MAX_VALUE)
+        );
+        leftPanelLayout.setVerticalGroup(
+            leftPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 748, Short.MAX_VALUE)
+        );
+
+        mainPanel.add(leftPanel, java.awt.BorderLayout.LINE_START);
+
+        getContentPane().add(mainPanel, java.awt.BorderLayout.CENTER);
 
         fileMenu.setText("File");
 
-        openFileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, 0));
+        openFileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         openFileMenuItem.setText("Open file");
         openFileMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -181,7 +351,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         });
         fileMenu.add(openFileMenuItem);
 
-        openDirMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, 0));
+        openDirMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.ALT_MASK));
         openDirMenuItem.setText("Open Directory");
         openDirMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -189,8 +359,9 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
         });
         fileMenu.add(openDirMenuItem);
+        fileMenu.add(separator1);
 
-        savePNGMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, 0));
+        savePNGMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         savePNGMenuItem.setText("Save(as png)");
         savePNGMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -198,9 +369,9 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
         });
         fileMenu.add(savePNGMenuItem);
-        fileMenu.add(separator);
+        fileMenu.add(separator2);
 
-        exitMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, 0));
+        exitMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK));
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -211,17 +382,45 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         menuBar.add(fileMenu);
 
-        editMenu.setText("Edit");
-        editMenu.addActionListener(new java.awt.event.ActionListener() {
+        filterMenu.setText("Filters");
+
+        histEqualizationItem.setText("Histogram Equalization");
+        histEqualizationItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editMenuActionPerformed(evt);
+                histEqualizationItemActionPerformed(evt);
             }
         });
-        menuBar.add(editMenu);
+        filterMenu.add(histEqualizationItem);
 
-        optionsMenu.setText("Options");
+        gaussianFilterItem.setText("Gaussian Filter");
+        gaussianFilterItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                gaussianFilterItemActionPerformed(evt);
+            }
+        });
+        filterMenu.add(gaussianFilterItem);
 
-        switchListViewItem.setText("Switch List View");
+        negativeItem.setText("Negative");
+        negativeItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                negativeItemActionPerformed(evt);
+            }
+        });
+        filterMenu.add(negativeItem);
+
+        sqrtBrightenItem.setText("Sqrt Brighten");
+        sqrtBrightenItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sqrtBrightenItemActionPerformed(evt);
+            }
+        });
+        filterMenu.add(sqrtBrightenItem);
+
+        menuBar.add(filterMenu);
+
+        optionsMenu.setText("View");
+
+        switchListViewItem.setText("List of file names");
         switchListViewItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 switchListViewItemActionPerformed(evt);
@@ -233,66 +432,8 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         setJMenuBar(menuBar);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(fileListScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
-                    .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(9, 9, 9)
-                        .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 237, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(zoomInit)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(contrastSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(zoomInit)
-                                    .addComponent(jLabel2))
-                                .addGap(24, 24, 24))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(24, 24, 24)
-                                        .addComponent(jLabel1))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(contrastSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                        .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(fileListScroll)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void editMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editMenuActionPerformed
-
-    }//GEN-LAST:event_editMenuActionPerformed
 
     private void openFileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuItemActionPerformed
         //Gui odczyt=new Tools();
@@ -303,15 +444,15 @@ public class DicomExplorer extends javax.swing.JFrame {
         chooser.setFileFilter(filter);
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fname = chooser.getSelectedFile();
-            initialPath = fname.getPath();
+            file = chooser.getSelectedFile();
+            initialPath = file.getPath();
             try {
-                currentImg = iQD.endImage(fname);
-                ImageIcon iconS = new ImageIcon(currentImg);
-                imagePanel.setIcon(iconS);
-                patientData.setText(DicomTools.dataInf(fname.getName()));
+                currentImg = DicomTools.openDicomFile(file).getImage();
+                iManager.updateImg(currentImg);
+                iManager.repaint(zoomer.getCurrentScale());
+                patientData.setText(DicomTools.dataInf(file.getName()));
                 ((DefaultListModel) fileList.getModel()).removeAllElements();
-                System.out.println("nazwa wybranego pliku" + fname.getName());
+                System.out.println("nazwa wybranego pliku" + file.getName());
             } catch (Exception ex) {
                 Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -353,32 +494,51 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
+        chooser.setMultiSelectionEnabled(true);
+        // not used ? FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-
-            fname = chooser.getSelectedFile();
-            initialPath = fname.getPath();
-            File dir = fname.isFile() ? fname.getParentFile() : fname;
-            try {
-                DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel());
-            } catch (Exception ex) {
-                Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
+            File[] list = chooser.getSelectedFiles();
+            file = list[0];
+            initialPath = file.getPath();
+            if (list.length > 1) {
+                try {
+                    DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel());
+                } catch (Exception ex) {
+                    Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                File dir = file.isFile() ? file.getParentFile() : file;
+                try {
+                    DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel());
+                } catch (Exception ex) {
+                    Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
     private void contrastSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_contrastSliderStateChanged
         if (currentImg != null) {
-            if( contrast != null )
+            if (contrast != null) {
                 iManager.rmFilter(contrast);
-            contrast = new ContrastEnhancer( contrastSlider.getValue()/20.0f, 0.0f );
-            iManager.addFilter(contrast);
+            }
+            int contrastValue = contrastSlider.getValue();
+            if (contrastValue != 20) {
+                contrast = new ContrastEnhancer(contrastValue / 20.0f, 0.0f);
+                iManager.addFilter(contrast);
+            }
             iManager.repaint(zoomer.getCurrentScale());
+            updateStatus();
         }
     }//GEN-LAST:event_contrastSliderStateChanged
 
     private void switchListViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchListViewItemActionPerformed
+        if (switchListViewItem.getText().equals("List of file names")) {
+            switchListViewItem.setText("File content miniatures");
+        } else {
+            switchListViewItem.setText("List of file names");
+        }
         listRenderer.switchView();
         fileList.repaint();
     }//GEN-LAST:event_switchListViewItemActionPerformed
@@ -387,6 +547,77 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomSlider.setValue(100);
         zoomer.stateChanged(new ChangeEvent(zoomSlider));
     }//GEN-LAST:event_zoomInitActionPerformed
+
+    private void histEqualizationItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_histEqualizationItemActionPerformed
+        if (equalizer == null) {
+            equalizer = new HistogramEqualizationFilter();
+            iManager.addFilter(equalizer);
+            iManager.repaint(zoomer.getCurrentScale());
+            histEqualizationItem.setText("Remove Histogram Equalization");
+        } else {
+            iManager.rmFilter(equalizer);
+            iManager.repaint(zoomer.getCurrentScale());
+            equalizer = null;
+            histEqualizationItem.setText("Histogram Equalization");
+        }
+        updateStatus();
+    }//GEN-LAST:event_histEqualizationItemActionPerformed
+
+    private void gaussianFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gaussianFilterItemActionPerformed
+        if (gaussian == null) {
+            gaussian = new GaussianFilter();
+            iManager.addFilter(gaussian);
+            iManager.repaint(zoomer.getCurrentScale());
+            gaussianFilterItem.setText("Remove Gaussian Filter");
+        } else {
+            iManager.rmFilter(gaussian);
+            iManager.repaint(zoomer.getCurrentScale());
+            gaussian = null;
+            gaussianFilterItem.setText("Gaussian Filter");
+        }
+        updateStatus();
+    }//GEN-LAST:event_gaussianFilterItemActionPerformed
+
+    private void negativeItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_negativeItemActionPerformed
+        if (negative == null) {
+            negative = new Negative();
+            iManager.addFilter(negative);
+            iManager.repaint(zoomer.getCurrentScale());
+            negativeItem.setText("Positive");
+        } else {
+            iManager.rmFilter(negative);
+            iManager.repaint(zoomer.getCurrentScale());
+            negative = null;
+            negativeItem.setText("Negative");
+        }
+        updateStatus();
+    }//GEN-LAST:event_negativeItemActionPerformed
+
+    private void sqrtBrightenItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sqrtBrightenItemActionPerformed
+        if  ( true )
+            return; // cos jeszcze zle w Sqrt Brigthen
+        
+        if (sqrtBrighten == null) {
+            sqrtBrighten = new SqrtBrighten();
+            iManager.addFilter(sqrtBrighten);
+            iManager.repaint(zoomer.getCurrentScale());
+            sqrtBrightenItem.setText("No Sqrt Brighten");
+        } else {
+            iManager.rmFilter(sqrtBrighten);
+            iManager.repaint(zoomer.getCurrentScale());
+            sqrtBrighten = null;
+            sqrtBrightenItem.setText("Sqrt Brighten");
+        }
+        updateStatus();
+    }//GEN-LAST:event_sqrtBrightenItemActionPerformed
+
+    private void updateStatus() {
+        StringBuilder sb = new StringBuilder("Applied filters: ");
+        for (BufferedImageOp f : iManager) {
+            sb.append(f.toString()).append(' ');
+        }
+        status.setText(sb.toString());
+    }
 
     /**
      * @param args the command line arguments
@@ -426,27 +657,46 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel contrastPanel;
     private javax.swing.JSlider contrastSlider;
-    private javax.swing.JMenu editMenu;
+    private javax.swing.JPanel controlPanel;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JList<DicomFileContent> fileList;
     private javax.swing.JScrollPane fileListScroll;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JPanel filePanel;
+    private javax.swing.JLabel filesTitle;
+    private javax.swing.JMenu filterMenu;
+    private javax.swing.JMenuItem gaussianFilterItem;
+    private javax.swing.JMenuItem histEqualizationItem;
     private javax.swing.JLabel imagePanel;
     private javax.swing.JScrollPane imgScroll;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel leftPanel;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenuItem negativeItem;
     private javax.swing.JMenuItem openDirMenuItem;
     private javax.swing.JMenuItem openFileMenuItem;
     private javax.swing.JMenu optionsMenu;
     private javax.swing.JLabel patientData;
+    private javax.swing.JPanel rightPanel;
     private javax.swing.JMenuItem savePNGMenuItem;
-    private javax.swing.JPopupMenu.Separator separator;
+    private javax.swing.JPopupMenu.Separator separator1;
+    private javax.swing.JPopupMenu.Separator separator2;
+    private javax.swing.JMenuItem sqrtBrightenItem;
+    private javax.swing.JLabel status;
+    private javax.swing.JPanel statusPanel;
     private javax.swing.JMenuItem switchListViewItem;
     private javax.swing.JButton zoomInit;
+    private javax.swing.JPanel zoomPanel;
     private javax.swing.JSlider zoomSlider;
     // End of variables declaration//GEN-END:variables
 
