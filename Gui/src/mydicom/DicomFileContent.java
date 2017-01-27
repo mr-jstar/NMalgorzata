@@ -55,10 +55,24 @@ public class DicomFileContent implements Comparable<DicomFileContent> {
     public double getLocation() {
         return sliceLocation;
     }
-    
+
+    /**
+     * @return the width
+     */
+    public double getWidth() {
+        return image.getWidth();
+    }
+
+    /**
+     * @return the height
+     */
+    public double getHeight() {
+        return image.getWidth();
+    }
+
     @Override
-    public boolean equals( Object o ) {
-        return o instanceof DicomFileContent && ((DicomFileContent)o).name.equals(name);
+    public boolean equals(Object o) {
+        return o instanceof DicomFileContent && ((DicomFileContent) o).name.equals(name);
     }
 
     @Override

@@ -8,6 +8,7 @@ package gui;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -17,7 +18,7 @@ import javax.swing.JLabel;
  *
  * @author jstar
  */
-public class ImageManager {
+public class ImageManager implements Iterable<BufferedImageOp> {
 
     private BufferedImage img;
     private final static ScaleImage scaler = new ScaleImage();
@@ -33,28 +34,34 @@ public class ImageManager {
     public void updateImg(BufferedImage image) {
         img = image;
     }
-    
+
     public void addFilter(BufferedImageOp f) {
         filters.add(f);
     }
-    
+
     public void rmFilter(BufferedImageOp f) {
         filters.remove(f);
     }
-    
-        public void clearFilters() {
+
+    public void clearFilters() {
         filters.clear();
+    }
+    
+    @Override
+    public Iterator<BufferedImageOp> iterator() {
+        return filters.iterator();
     }
 
     public void repaint(double scale) {
-
+        System.err.println("ImageManager::repaint");
         if (img == null) {
             return;
         }
         try {
             BufferedImage sc = scaler.makeImage(img, scale, scale);
-            for( BufferedImageOp f : filters )
+            for (BufferedImageOp f : filters) {
                 f.filter(sc, sc);
+            }
             imagePanel.setIcon(new ImageIcon(sc));
         } catch (Exception ex) {
             Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);

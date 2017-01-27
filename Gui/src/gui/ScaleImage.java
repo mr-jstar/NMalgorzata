@@ -26,10 +26,8 @@ public class ScaleImage {
 
     public BufferedImage makeImage(BufferedImage imageInput, double height, double width) { //,Color background)   
 
-        height = (int) (imageInput.getHeight() * height);
-        width = (int) (imageInput.getWidth() * width);
-        this.h = (int) height;
-        this.w = (int) width;
+        this.h = (int) (imageInput.getHeight() * height);
+        this.w = (int) (imageInput.getWidth() * width);
 
         BufferedImage newImage = new BufferedImage(w, h,
                 BufferedImage.TYPE_USHORT_GRAY);

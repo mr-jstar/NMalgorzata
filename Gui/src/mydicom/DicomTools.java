@@ -60,7 +60,7 @@ public class DicomTools {
 //              modality=lElement.getSingleStringValue("empty");
 //              modality="Modality: "+modality;
 //            }
-//            
+         
             if (lElement.getTag().getName().equals("Modality")) {
                 modality = lElement.getSingleStringValue("empty");
                 modality = "Modality: " + modality;
@@ -95,7 +95,7 @@ public class DicomTools {
                 bodyPartExamined = lElement.getSingleStringValue("empty");
                 bodyPartExamined = "Body Part Examined: " + bodyPartExamined;
             }
-            
+
             if (lElement.getTag().getName().equals("Slice Location")) {
                 slicePosition = "Slice Location: " + lElement.getSingleStringValue("unknown");
             }
@@ -126,16 +126,21 @@ public class DicomTools {
             }
         });
         System.err.println(imageFiles.length + " files found");
+        processFileList(imageFiles, model);
+        System.err.println(model.getSize() + " images read from " + directory);
+    }
+
+    public static void processFileList(File[] imageFiles, DefaultListModel<DicomFileContent> model) throws IOException {
         ArrayList<DicomFileContent> list = new ArrayList<>();
         for (File file : imageFiles) {
-            System.err.print("Trying " + file.getName());
+            //System.err.print("Trying " + file.getName());
             try {
                 DicomFileContent im = openDicomFile(file);
                 if (im != null) {
                     list.add(im);
-                    System.err.println(" -> ok! : " );
+                    //System.err.println(" -> ok! : ");
                 } else {
-                    System.err.println(" -> NO IMAGE");
+                    //System.err.println(" -> NO IMAGE");
                 }
             } catch (Exception ex) {
                 Logger.getLogger(DicomTools.class.getName()).log(Level.SEVERE, null, ex);
@@ -143,11 +148,10 @@ public class DicomTools {
         }
         Collections.sort(list);
         model.removeAllElements();
-        for( DicomFileContent fc : list ) {
-            System.err.println( fc.getName() + " at " + fc.getLocation() );
+        for (DicomFileContent fc : list) {
+            //System.err.println(fc.getName() + " at " + fc.getLocation() + " : " + fc.getWidth() + "x" + fc.getHeight() + " pixels");
             model.addElement(fc);
         }
-        System.err.println(model.getSize() + " images read from " + directory);
     }
 
     public static DicomFileContent openDicomFile(File file) throws Exception {
@@ -188,21 +192,22 @@ public class DicomTools {
                 if (tagName.equals("Pixel Data")) {
                     short[] ldata = lElement.getShortValues();
                     if (rows * cols != ldata.length) {
-                        //jesli liczba kolumn pomnożona
-                        //prze liczbe wierszy bedzie różna od długości obiektu ldata to:
-                        //                    System.err.println("Zły obrazek ");//wyrzucony zostanie błąd
-                        break; // zakonczenie tej instrukcji if i przejscie dalej
+                        break; 
                     }
                     bImg = new BufferedImage(cols, rows, BufferedImage.TYPE_USHORT_GRAY);
                     Graphics2D cg = bImg.createGraphics();
+                    short maxpi= 0;
                     for (int i = 0; i < ldata.length; i++) {
                         int x = i % cols;
                         int y = i / cols;
                         short hounsfield = ldata[i];
                         hounsfield = (short) (hounsfield * slope + intercept);
                         double hd = (hounsfield + 1000) / 4000.0;
-                        bImg.setRGB(x, y, (short) (2 * Short.MAX_VALUE * hd));
+                        short pi = (short) (2 * Short.MAX_VALUE * hd);
+                        if( pi > maxpi ) maxpi = pi;
+                        bImg.setRGB(x, y, pi );
                     }
+                    System.err.println( "max=" + maxpi );
                 }
             }
         }

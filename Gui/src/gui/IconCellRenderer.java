@@ -23,7 +23,7 @@ class IconCellRenderer extends DefaultListCellRenderer {
     private static final long serialVersionUID = 1L;
     private int size;
     private BufferedImage icon;
-    public static int defaultIconSize = 200;
+    public static int defaultIconSize = 100;
     private boolean showText;
 
     private static Border focusBorder = LineBorder.createGrayLineBorder();
@@ -58,6 +58,7 @@ class IconCellRenderer extends DefaultListCellRenderer {
         if (!showText && c instanceof JLabel && value instanceof DicomFileContent) {//jesli w obiekcie wystepuja te 3 rzeczy to:
             JLabel l = (JLabel) c;//tworzony jest nowy obiekt jLabel z komponentu c
             l.setText("");
+            l.setBorder(focusBorder);
             BufferedImage i = ((DicomFileContent) value).getImage();//buffforowana jest wartość value
             l.setIcon(new ImageIcon(icon));//i ustawiany jest obraz w jLabel poprzez 
             list.setFixedCellWidth(size);

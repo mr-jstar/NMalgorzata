@@ -20,6 +20,7 @@ public class ZoomSliderListener implements ChangeListener {
 
     public ZoomSliderListener(ImageManager manager) {
         this.manager = manager;
+        this.scale = 1;
     }
     
     public double getCurrentScale() {
@@ -29,7 +30,7 @@ public class ZoomSliderListener implements ChangeListener {
     @Override
     public void stateChanged(ChangeEvent ce) {
         double value = ((JSlider) ce.getSource()).getValue();
-        System.out.println("value "+value);
+        //System.out.println("value "+value);
         scale = value / 100;
         manager.repaint(scale);
     }

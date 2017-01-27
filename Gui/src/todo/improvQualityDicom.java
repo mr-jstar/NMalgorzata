@@ -3,10 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package imageProcessing;
+package todo;
 
+import imageProcessing.GaussianFilter;
+import imageProcessing.HistogramEqualizationFilter;
+import todo.StretchingImage;
+import todo.MedianaFilter;
+import todo.Interpolation;
+import todo.GammaCorrection;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import mydicom.DicomFileContent;
+import mydicom.DicomTools;
 
 /**
  *
@@ -18,13 +26,6 @@ public class improvQualityDicom {
     MedianaFilter mF = new MedianaFilter();
     GaussianFilter gF= new GaussianFilter();
     StretchingImage sI= new StretchingImage();
-    EqualizationImage eI = new EqualizationImage();
+    HistogramEqualizationFilter eI = new HistogramEqualizationFilter();
     
-    public BufferedImage endImage(File fname){
-//        BufferedImage eImageDicom = eI.histogramChange(sI.histogramAdd(gF.histogramChange(mF.histogramChange
-//        (gmC.histogramChange(inI.interpolationDicom(fname))))));
-BufferedImage eImageDicom = gF.histogramChange(mF.histogramChange
-        (inI.interpolationDicom(fname)));
-        return eImageDicom;
-    }
 }
