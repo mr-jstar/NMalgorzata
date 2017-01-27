@@ -34,13 +34,16 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private File fname;
     private BufferedImage currentImg = null;
-    private improvQualityDicom iQD = new improvQualityDicom();
-    private IconCellRenderer listRenderer = new IconCellRenderer();
+    private final improvQualityDicom iQD = new improvQualityDicom();
+    private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
+    private final ImageManager iManager;
+    private ContrastEnhancer contrast;
 
     public DicomExplorer() {
         initComponents();
-        zoomer = new ZoomSliderListener(imagePanel);
+        iManager = new ImageManager(imagePanel);
+        zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
 
         fileList.setModel(new DefaultListModel<DicomFileContent>());
@@ -53,9 +56,8 @@ public class DicomExplorer extends javax.swing.JFrame {
                 if (o instanceof DicomFileContent) {
                     DicomFileContent fc = ((DicomFileContent) o);
                     currentImg = fc.getImage();
-                    zoomer.updateImg(currentImg);
+                    iManager.updateImg(currentImg);
                     zoomer.stateChanged(new ChangeEvent(zoomSlider));
-                    //imagePanel.setIcon(new ImageIcon(currentImg));
                     patientData.setText(fc.getData());
 
                 }
@@ -78,9 +80,12 @@ public class DicomExplorer extends javax.swing.JFrame {
         imagePanel = new javax.swing.JLabel();
         fileListScroll = new javax.swing.JScrollPane();
         fileList = new javax.swing.JList<>();
-        zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        contrastSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         patientData = new javax.swing.JLabel();
         zoomInit = new javax.swing.JButton();
+        zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openFileMenuItem = new javax.swing.JMenuItem();
@@ -111,11 +116,13 @@ public class DicomExplorer extends javax.swing.JFrame {
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(imgScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
+            .addComponent(imgScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 663, Short.MAX_VALUE)
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(imgScroll)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(imgScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 670, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         fileListScroll.setBackground(new java.awt.Color(0, 0, 0));
@@ -127,16 +134,15 @@ public class DicomExplorer extends javax.swing.JFrame {
         fileList.setMinimumSize(new java.awt.Dimension(200, 200));
         fileListScroll.setViewportView(fileList);
 
-        zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
-        zoomSlider.setMajorTickSpacing(10);
-        zoomSlider.setMaximum(500);
-        zoomSlider.setMinimum(20);
-        zoomSlider.setPaintTicks(true);
-        zoomSlider.setToolTipText("");
-        zoomSlider.setValue(100);
-        zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+        contrastSlider.setForeground(new java.awt.Color(0, 0, 0));
+        contrastSlider.setMajorTickSpacing(20);
+        contrastSlider.setMinimum(20);
+        contrastSlider.setPaintTicks(true);
+        contrastSlider.setToolTipText("");
+        contrastSlider.setValue(20);
+        contrastSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                zoomSliderStateChanged(evt);
+                contrastSliderStateChanged(evt);
             }
         });
 
@@ -151,6 +157,18 @@ public class DicomExplorer extends javax.swing.JFrame {
                 zoomInitActionPerformed(evt);
             }
         });
+
+        zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
+        zoomSlider.setMajorTickSpacing(10);
+        zoomSlider.setMaximum(500);
+        zoomSlider.setMinimum(20);
+        zoomSlider.setPaintTicks(true);
+        zoomSlider.setToolTipText("");
+        zoomSlider.setValue(100);
+
+        jLabel1.setText("Zoom:");
+
+        jLabel2.setText("Contrast");
 
         fileMenu.setText("File");
 
@@ -227,10 +245,16 @@ public class DicomExplorer extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel1)
+                        .addGap(9, 9, 9)
+                        .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 237, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(zoomInit)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(contrastSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -238,17 +262,28 @@ public class DicomExplorer extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(zoomInit)
-                                .addGap(17, 17, 17)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(zoomInit)
+                                    .addComponent(jLabel2))
+                                .addGap(24, 24, 24))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(24, 24, 24)
+                                        .addComponent(jLabel1))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(contrastSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                         .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(fileListScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
+                        .addComponent(fileListScroll)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)))
+                        .addComponent(patientData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -333,11 +368,15 @@ public class DicomExplorer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
-    private void zoomSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_zoomSliderStateChanged
+    private void contrastSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_contrastSliderStateChanged
         if (currentImg != null) {
-            ((ZoomSliderListener) zoomSlider.getChangeListeners()[0]).updateImg(currentImg);
+            if( contrast != null )
+                iManager.rmFilter(contrast);
+            contrast = new ContrastEnhancer( contrastSlider.getValue()/20.0f, 0.0f );
+            iManager.addFilter(contrast);
+            iManager.repaint(zoomer.getCurrentScale());
         }
-    }//GEN-LAST:event_zoomSliderStateChanged
+    }//GEN-LAST:event_contrastSliderStateChanged
 
     private void switchListViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchListViewItemActionPerformed
         listRenderer.switchView();
@@ -387,6 +426,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSlider contrastSlider;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JList<DicomFileContent> fileList;
@@ -395,6 +435,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel imagePanel;
     private javax.swing.JScrollPane imgScroll;
     private javax.swing.JFileChooser jFileChooser1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openDirMenuItem;

@@ -52,7 +52,7 @@ public class ScaleImage {
     }
 
     public static ArrayList<int[]> LUT(BufferedImage iInput) {
-        ArrayList<int[]> LUTi = new ArrayList<int[]>();
+        ArrayList<int[]> LUTi = new ArrayList<>();
         int pixel = iInput.getWidth() * iInput.getHeight();
         int[] rParameter = new int[pixel];
         int[] gParameter = new int[pixel];

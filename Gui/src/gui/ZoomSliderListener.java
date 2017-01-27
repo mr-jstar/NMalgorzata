@@ -5,11 +5,6 @@
  */
 package gui;
 
-import java.awt.image.BufferedImage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -20,35 +15,22 @@ import javax.swing.event.ChangeListener;
  */
 public class ZoomSliderListener implements ChangeListener {
 
-    private BufferedImage obrazek;
-    private final ScaleImage SCI = new ScaleImage();
-    private final JLabel imagePanel;
+    private final ImageManager manager;
+    private double scale;
 
-    public ZoomSliderListener(JLabel panel) {
-        obrazek = null;
-        imagePanel = panel;
+    public ZoomSliderListener(ImageManager manager) {
+        this.manager = manager;
     }
-
-    public void updateImg(BufferedImage img) {
-        obrazek = img;
+    
+    public double getCurrentScale() {
+        return scale;
     }
 
     @Override
     public void stateChanged(ChangeEvent ce) {
-        if (obrazek == null) {
-            return;
-        }
-        double range = ((JSlider) ce.getSource()).getValue();
-//            System.out.println("range "+range);
-        double multi = (range / 100);
-//            System.out.println("multi "+multi);
-//            final BufferedImage obrazek = SCI.getPicture(jLabel1);
-        try {
-            BufferedImage sc = SCI.makeImage(obrazek, multi, multi);
-            ImageIcon iconS = new ImageIcon(sc);
-            imagePanel.setIcon(iconS);
-        } catch (Exception ex) {
-            Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        double value = ((JSlider) ce.getSource()).getValue();
+        System.out.println("value "+value);
+        scale = value / 100;
+        manager.repaint(scale);
     }
 }
