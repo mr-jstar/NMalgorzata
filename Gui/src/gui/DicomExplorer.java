@@ -5,11 +5,11 @@
  */
 package gui;
 
-import imageProcessing.ContrastEnhancer;
+import imageProcessing.BrightnessEnhancer;
 import imageProcessing.GaussianFilter;
 import imageProcessing.HistogramEqualizationFilter;
 import imageProcessing.Negative;
-import imageProcessing.SqrtBrighten;
+import experimental.SqrtBrighten;
 import mydicom.DicomFileContent;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -44,11 +44,10 @@ public class DicomExplorer extends javax.swing.JFrame {
     private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
     private final ImageManager iManager;
-    private ContrastEnhancer contrast;
+    private BrightnessEnhancer brightness;
     private HistogramEqualizationFilter equalizer;
     private GaussianFilter gaussian;
     private Negative negative;
-    private SqrtBrighten sqrtBrighten;
 
     public DicomExplorer() {
         initComponents();
@@ -64,8 +63,8 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         labels = new Hashtable();
         labels.put(20, new JLabel("normal"));
-        labels.put(contrastSlider.getMaximum(), new JLabel("extreme"));
-        contrastSlider.setLabelTable(labels);
+        labels.put(brightnessSlider.getMaximum(), new JLabel("extreme"));
+        brightnessSlider.setLabelTable(labels);
 
         fileList.setModel(new DefaultListModel<DicomFileContent>());
         fileList.setCellRenderer(listRenderer);
@@ -112,7 +111,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         contrastPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        contrastSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
+        brightnessSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         jLabel4 = new javax.swing.JLabel();
         imgScroll = new javax.swing.JScrollPane();
         imagePanel = new javax.swing.JLabel();
@@ -133,7 +132,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         histEqualizationItem = new javax.swing.JMenuItem();
         gaussianFilterItem = new javax.swing.JMenuItem();
         negativeItem = new javax.swing.JMenuItem();
-        sqrtBrightenItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
         switchListViewItem = new javax.swing.JMenuItem();
 
@@ -234,23 +232,23 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         contrastPanel.setLayout(new java.awt.BorderLayout());
 
-        jLabel2.setText("Contrast: ");
+        jLabel2.setText("Brightness: ");
         contrastPanel.add(jLabel2, java.awt.BorderLayout.WEST);
 
-        contrastSlider.setForeground(new java.awt.Color(0, 0, 0));
-        contrastSlider.setMinimum(20);
-        contrastSlider.setMinorTickSpacing(20);
-        contrastSlider.setPaintLabels(true);
-        contrastSlider.setPaintTicks(true);
-        contrastSlider.setToolTipText("");
-        contrastSlider.setValue(20);
-        contrastSlider.setAutoscrolls(true);
-        contrastSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+        brightnessSlider.setForeground(new java.awt.Color(0, 0, 0));
+        brightnessSlider.setMinimum(20);
+        brightnessSlider.setMinorTickSpacing(20);
+        brightnessSlider.setPaintLabels(true);
+        brightnessSlider.setPaintTicks(true);
+        brightnessSlider.setToolTipText("");
+        brightnessSlider.setValue(20);
+        brightnessSlider.setAutoscrolls(true);
+        brightnessSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                contrastSliderStateChanged(evt);
+                brightnessSliderStateChanged(evt);
             }
         });
-        contrastPanel.add(contrastSlider, java.awt.BorderLayout.EAST);
+        contrastPanel.add(brightnessSlider, java.awt.BorderLayout.EAST);
 
         controlPanel.add(contrastPanel);
 
@@ -408,14 +406,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         });
         filterMenu.add(negativeItem);
 
-        sqrtBrightenItem.setText("Sqrt Brighten");
-        sqrtBrightenItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                sqrtBrightenItemActionPerformed(evt);
-            }
-        });
-        filterMenu.add(sqrtBrightenItem);
-
         menuBar.add(filterMenu);
 
         optionsMenu.setText("View");
@@ -436,8 +426,6 @@ public class DicomExplorer extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void openFileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuItemActionPerformed
-        //Gui odczyt=new Tools();
-        //EqualizationHistogram histEQ = new EqualizationHistogram();
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "DCOM Images", "dcm");
@@ -469,8 +457,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                 ImageIcon icon = (ImageIcon) imagePanel.getIcon();
                 BufferedImage obrazek = (BufferedImage) ((Image) icon.getImage());
                 File saveFile = chooser.getSelectedFile();
-                if (FilenameUtils.getExtension(saveFile.getName()).equalsIgnoreCase(".png")) {//equalsIgnoreCase- ignoruje wielkość 
-                    // filename is OK as-is
+                if (FilenameUtils.getExtension(saveFile.getName()).equalsIgnoreCase(".png")) { 
                 } else {
                     saveFile = new File(saveFile.toString() + ".png");
                     saveFile = new File(saveFile.getParentFile(), FilenameUtils.getBaseName(saveFile.getName()) + ".png"); // ALTERNATIVELY: remove the extension (if any) and replace it with ".xml"
@@ -518,20 +505,20 @@ public class DicomExplorer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
-    private void contrastSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_contrastSliderStateChanged
+    private void brightnessSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_brightnessSliderStateChanged
         if (currentImg != null) {
-            if (contrast != null) {
-                iManager.rmFilter(contrast);
+            if (brightness != null) {
+                iManager.rmFilter(brightness);
             }
-            int contrastValue = contrastSlider.getValue();
+            int contrastValue = brightnessSlider.getValue();
             if (contrastValue != 20) {
-                contrast = new ContrastEnhancer(contrastValue / 20.0f, 0.0f);
-                iManager.addFilter(contrast);
+                brightness = new BrightnessEnhancer(contrastValue / 20.0f, 0.0f);
+                iManager.addFilter(brightness);
             }
             iManager.repaint(zoomer.getCurrentScale());
             updateStatus();
         }
-    }//GEN-LAST:event_contrastSliderStateChanged
+    }//GEN-LAST:event_brightnessSliderStateChanged
 
     private void switchListViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchListViewItemActionPerformed
         if (switchListViewItem.getText().equals("List of file names")) {
@@ -593,24 +580,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         updateStatus();
     }//GEN-LAST:event_negativeItemActionPerformed
 
-    private void sqrtBrightenItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sqrtBrightenItemActionPerformed
-        if  ( true )
-            return; // cos jeszcze zle w Sqrt Brigthen
-        
-        if (sqrtBrighten == null) {
-            sqrtBrighten = new SqrtBrighten();
-            iManager.addFilter(sqrtBrighten);
-            iManager.repaint(zoomer.getCurrentScale());
-            sqrtBrightenItem.setText("No Sqrt Brighten");
-        } else {
-            iManager.rmFilter(sqrtBrighten);
-            iManager.repaint(zoomer.getCurrentScale());
-            sqrtBrighten = null;
-            sqrtBrightenItem.setText("Sqrt Brighten");
-        }
-        updateStatus();
-    }//GEN-LAST:event_sqrtBrightenItemActionPerformed
-
     private void updateStatus() {
         StringBuilder sb = new StringBuilder("Applied filters: ");
         for (BufferedImageOp f : iManager) {
@@ -657,8 +626,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSlider brightnessSlider;
     private javax.swing.JPanel contrastPanel;
-    private javax.swing.JSlider contrastSlider;
     private javax.swing.JPanel controlPanel;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JList<DicomFileContent> fileList;
@@ -691,7 +660,6 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem savePNGMenuItem;
     private javax.swing.JPopupMenu.Separator separator1;
     private javax.swing.JPopupMenu.Separator separator2;
-    private javax.swing.JMenuItem sqrtBrightenItem;
     private javax.swing.JLabel status;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JMenuItem switchListViewItem;
