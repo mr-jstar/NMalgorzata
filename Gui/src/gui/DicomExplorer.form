@@ -72,12 +72,12 @@
             <Property name="text" type="java.lang.String" value="Options"/>
           </Properties>
           <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="jMenuItem1">
+            <MenuItem class="javax.swing.JMenuItem" name="switchListViewItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Switch List View"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem1ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="switchListViewItemActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>
@@ -121,6 +121,8 @@
                   <Component id="mainPanel" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Component id="zoomSlider" min="-2" pref="270" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="zoomInit" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -132,8 +134,16 @@
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="zoomSlider" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="zoomSlider" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <Component id="zoomInit" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
                       <Component id="mainPanel" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
@@ -240,9 +250,11 @@
           <Color blue="0" green="0" red="0" type="rgb"/>
         </Property>
         <Property name="majorTickSpacing" type="int" value="10"/>
-        <Property name="minorTickSpacing" type="int" value="5"/>
+        <Property name="maximum" type="int" value="500"/>
+        <Property name="minimum" type="int" value="20"/>
         <Property name="paintTicks" type="boolean" value="true"/>
         <Property name="toolTipText" type="java.lang.String" value=""/>
+        <Property name="value" type="int" value="100"/>
       </Properties>
       <Events>
         <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="zoomSliderStateChanged"/>
@@ -264,6 +276,14 @@
           </Border>
         </Property>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="zoomInit">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="1:1"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="zoomInitActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

@@ -17,6 +17,7 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -30,14 +31,18 @@ import org.apache.commons.io.FilenameUtils;
 public class DicomExplorer extends javax.swing.JFrame {
 
     private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan";
-    
+
     private File fname;
     private BufferedImage currentImg = null;
-    improvQualityDicom iQD = new improvQualityDicom();
-    IconCellRenderer listRenderer = new IconCellRenderer();
+    private improvQualityDicom iQD = new improvQualityDicom();
+    private IconCellRenderer listRenderer = new IconCellRenderer();
+    private ZoomSliderListener zoomer;
 
     public DicomExplorer() {
         initComponents();
+        zoomer = new ZoomSliderListener(imagePanel);
+        zoomSlider.addChangeListener(zoomer);
+
         fileList.setModel(new DefaultListModel<DicomFileContent>());
         fileList.setCellRenderer(listRenderer);
         fileList.addListSelectionListener(new ListSelectionListener() {
@@ -48,12 +53,14 @@ public class DicomExplorer extends javax.swing.JFrame {
                 if (o instanceof DicomFileContent) {
                     DicomFileContent fc = ((DicomFileContent) o);
                     currentImg = fc.getImage();
-                    imagePanel.setIcon(new ImageIcon(currentImg));
+                    zoomer.updateImg(currentImg);
+                    zoomer.stateChanged(new ChangeEvent(zoomSlider));
+                    //imagePanel.setIcon(new ImageIcon(currentImg));
                     patientData.setText(fc.getData());
+
                 }
             }
         });
-        zoomSlider.addChangeListener(new ZoomSliderListener(imagePanel));
     }
 
     /**
@@ -73,6 +80,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         fileList = new javax.swing.JList<>();
         zoomSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         patientData = new javax.swing.JLabel();
+        zoomInit = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openFileMenuItem = new javax.swing.JMenuItem();
@@ -82,7 +90,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         exitMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         optionsMenu = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
+        switchListViewItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
@@ -121,9 +129,11 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
         zoomSlider.setMajorTickSpacing(10);
-        zoomSlider.setMinorTickSpacing(5);
+        zoomSlider.setMaximum(500);
+        zoomSlider.setMinimum(20);
         zoomSlider.setPaintTicks(true);
         zoomSlider.setToolTipText("");
+        zoomSlider.setValue(100);
         zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 zoomSliderStateChanged(evt);
@@ -134,6 +144,13 @@ public class DicomExplorer extends javax.swing.JFrame {
         patientData.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         patientData.setAutoscrolls(true);
         patientData.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 2, 2));
+
+        zoomInit.setText("1:1");
+        zoomInit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomInitActionPerformed(evt);
+            }
+        });
 
         fileMenu.setText("File");
 
@@ -186,13 +203,13 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         optionsMenu.setText("Options");
 
-        jMenuItem1.setText("Switch List View");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        switchListViewItem.setText("Switch List View");
+        switchListViewItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+                switchListViewItemActionPerformed(evt);
             }
         });
-        optionsMenu.add(jMenuItem1);
+        optionsMenu.add(switchListViewItem);
 
         menuBar.add(optionsMenu);
 
@@ -211,6 +228,8 @@ public class DicomExplorer extends javax.swing.JFrame {
                     .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(zoomInit)
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -218,8 +237,13 @@ public class DicomExplorer extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(zoomSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(zoomInit)
+                                .addGap(17, 17, 17)))
                         .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(fileListScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
@@ -293,6 +317,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void openDirMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openDirMenuItemActionPerformed
 
         JFileChooser chooser = new JFileChooser(new File(initialPath));
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -309,16 +334,20 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
     private void zoomSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_zoomSliderStateChanged
-
         if (currentImg != null) {
-            ((ZoomSliderListener)zoomSlider.getChangeListeners()[0]).updateImg(currentImg);
+            ((ZoomSliderListener) zoomSlider.getChangeListeners()[0]).updateImg(currentImg);
         }
     }//GEN-LAST:event_zoomSliderStateChanged
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void switchListViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchListViewItemActionPerformed
         listRenderer.switchView();
         fileList.repaint();
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    }//GEN-LAST:event_switchListViewItemActionPerformed
+
+    private void zoomInitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomInitActionPerformed
+        zoomSlider.setValue(100);
+        zoomer.stateChanged(new ChangeEvent(zoomSlider));
+    }//GEN-LAST:event_zoomInitActionPerformed
 
     /**
      * @param args the command line arguments
@@ -366,7 +395,6 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel imagePanel;
     private javax.swing.JScrollPane imgScroll;
     private javax.swing.JFileChooser jFileChooser1;
-    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openDirMenuItem;
@@ -375,6 +403,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel patientData;
     private javax.swing.JMenuItem savePNGMenuItem;
     private javax.swing.JPopupMenu.Separator separator;
+    private javax.swing.JMenuItem switchListViewItem;
+    private javax.swing.JButton zoomInit;
     private javax.swing.JSlider zoomSlider;
     // End of variables declaration//GEN-END:variables
 
