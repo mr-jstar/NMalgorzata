@@ -25,8 +25,8 @@ import org.dicom4j.io.media.DicomFile;
  */
 public class DicomTools {
 
-    public static String dataInf(String fname) throws Exception {
-        String file = "File: " + fname;
+    public static String dataInf(File file) throws Exception {
+        String fileName = "File: " + file.getName();
         String creationDate = "";
         String datee = "";
         String modality = "";
@@ -38,12 +38,11 @@ public class DicomTools {
         String bodyPartExamined = "";
         String sumInf = "";
         String slicePosition = "unknown";
-        DicomFile ldcm = new DicomFile(fname);// we create the	File
-        ldcm.open(); // we open it (read the data)
+        DicomFile ldcm = new DicomFile(file);
+        ldcm.open();
         ldcm.getDataset();
         Iterator iterator = ldcm.getDataset().getIterator();
         while (iterator.hasNext()) {
-            //System.out.println("czy otwarty fname "+fname);
             DataElement lElement = (DataElement) iterator.next();
             if (lElement.getTag().getName().equals("Instance Creation Date")) {
                 creationDate = lElement.getSingleStringValue("empty");
@@ -56,11 +55,6 @@ public class DicomTools {
                 }
             }
 
-//            if  (lElement.getTag().getName().equals("(0028")){
-//              modality=lElement.getSingleStringValue("empty");
-//              modality="Modality: "+modality;
-//            }
-         
             if (lElement.getTag().getName().equals("Modality")) {
                 modality = lElement.getSingleStringValue("empty");
                 modality = "Modality: " + modality;
@@ -101,7 +95,7 @@ public class DicomTools {
             }
         }
         sumInf = "<html>"
-                + file + "<br>"
+                + fileName + "<br>"
                 + datee + "<br>"
                 + modality + "<br>"
                 + institutionName + "<br>"
@@ -158,9 +152,10 @@ public class DicomTools {
         BufferedImage bImg = null;
         int rows = 0; //tworzenie smiennej wiersz
         int cols = 0;
-        int slope = 0;
-        int intercept = 0;
+        float slope = 0;
+        float intercept = 0;
         double location = 0;
+        short hmin = 1000, hmax = -1000;
         String fname = file.getName();
         String end = ".dcm";
         if (fname.endsWith(end)) {
@@ -174,11 +169,11 @@ public class DicomTools {
                 //System.err.println( tagName );
                 if (tagName.equals("Rescale Slope")) {
                     String sl = lElement.getSingleStringValue();
-                    slope = Integer.valueOf(sl);
+                    slope = Float.valueOf(sl);
                 }
                 if (tagName.equals("Rescale Intercept")) {
                     String in = lElement.getSingleStringValue();
-                    intercept = Integer.valueOf(in);
+                    intercept = Float.valueOf(in);
                 }
                 if (tagName.equals("Rows")) {
                     rows = lElement.getSingleIntegerValue();
@@ -192,25 +187,31 @@ public class DicomTools {
                 if (tagName.equals("Pixel Data")) {
                     short[] ldata = lElement.getShortValues();
                     if (rows * cols != ldata.length) {
-                        break; 
+                        break;
                     }
                     bImg = new BufferedImage(cols, rows, BufferedImage.TYPE_USHORT_GRAY);
                     Graphics2D cg = bImg.createGraphics();
-                    final int MX = 2*Short.MAX_VALUE;
+                    final int MX = 2 * Short.MAX_VALUE;
                     //System.err.println("MX="+MX);
                     for (int i = 0; i < ldata.length; i++) {
                         int x = i % cols;
                         int y = i / cols;
-                        short hounsfield = ldata[i];
-                        hounsfield = (short) (hounsfield * slope + intercept);
+                        short gray_value = ldata[i];
+                        short hounsfield = (short) (gray_value * slope + intercept);
+                        if (hounsfield < hmin) {
+                            hmin = hounsfield;
+                        }
+                        if (hounsfield > hmax) {
+                            hmax = hounsfield;
+                        }
                         double hd = (hounsfield + 1000) / 4000.0;
-                        short pi = (short) ( MX * hd);
-                        bImg.setRGB(x, y, pi );
+                        short pi = (short) (MX * hd);
+                        bImg.setRGB(x, y, pi);
                     }
                 }
             }
         }
-        return bImg == null ? null : new DicomFileContent(fname, location, bImg);
+        return bImg == null ? null : new DicomFileContent(file, location, hmin, hmax, bImg);
     }
 
     // Wyświetla strukturę Dicoma do standardowego wyjścia

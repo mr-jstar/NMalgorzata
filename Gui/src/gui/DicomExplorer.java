@@ -40,7 +40,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan";
 
     private File file;
-    private BufferedImage currentImg = null;
+    private DicomFileContent currentImg = null;
     private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
     private final ImageManager iManager;
@@ -75,8 +75,8 @@ public class DicomExplorer extends javax.swing.JFrame {
 
                 if (o instanceof DicomFileContent) {
                     DicomFileContent fc = ((DicomFileContent) o);
-                    currentImg = fc.getImage();
-                    iManager.updateImg(currentImg);
+                    currentImg = fc;
+                    iManager.updateImg(currentImg.getImage());
                     iManager.repaint(zoomer.getCurrentScale());
                     patientData.setText(fc.getData());
 
@@ -435,10 +435,11 @@ public class DicomExplorer extends javax.swing.JFrame {
             file = chooser.getSelectedFile();
             initialPath = file.getPath();
             try {
-                currentImg = DicomTools.openDicomFile(file).getImage();
-                iManager.updateImg(currentImg);
+                currentImg = DicomTools.openDicomFile(file);
+                iManager.updateImg(currentImg.getImage());
                 iManager.repaint(zoomer.getCurrentScale());
-                patientData.setText(DicomTools.dataInf(file.getName()));
+                patientData.setText(DicomTools.dataInf(file));
+                updateStatus();
                 ((DefaultListModel) fileList.getModel()).removeAllElements();
                 System.out.println("nazwa wybranego pliku" + file.getName());
             } catch (Exception ex) {
@@ -581,7 +582,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_negativeItemActionPerformed
 
     private void updateStatus() {
-        StringBuilder sb = new StringBuilder("Applied filters: ");
+        StringBuilder sb = new StringBuilder("HUE: " + currentImg.getHURange() + " Applied filters: ");
         for (BufferedImageOp f : iManager) {
             sb.append(f.toString()).append(' ');
         }

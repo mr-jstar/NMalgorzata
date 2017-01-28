@@ -6,6 +6,8 @@
 package mydicom;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.AbstractMap;
 import java.util.Objects;
 
 /**
@@ -19,13 +21,16 @@ public class DicomFileContent implements Comparable<DicomFileContent> {
     final private String name;
     final private String fileData;
     final private double sliceLocation;
+    final private short hmin,hmax;
 
-    public DicomFileContent(String name, double location, BufferedImage img)
+    public DicomFileContent(File file, double location, short hmin, short hmax, BufferedImage img)
             throws Exception {
-        this.name = name;
+        this.name = file.getName();
         this.sliceLocation = location;
         this.image = img;
-        fileData = DicomTools.dataInf(name);
+        fileData = DicomTools.dataInf(file);
+        this.hmin = hmin;
+        this.hmax = hmax;
     }
 
     /**
@@ -68,6 +73,10 @@ public class DicomFileContent implements Comparable<DicomFileContent> {
      */
     public double getHeight() {
         return image.getWidth();
+    }
+    
+    public AbstractMap.SimpleImmutableEntry<Short,Short> getHURange() {
+        return new AbstractMap.SimpleImmutableEntry<>(hmin,hmax);
     }
 
     @Override
