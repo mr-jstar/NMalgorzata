@@ -63,6 +63,6 @@ public class BrightnessEnhancer implements BufferedImageOp {
     
         @Override
     public String toString() {
-        return "ContrastEnhancer";
+        return "BrightnestEnhancer";
     }
 }
