@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import mydicom.DicomFileContent;
 import mydicom.DicomTools;
+import mydicom.HU2RGBMapperBySilverstein;
 
 /**
  *
@@ -68,7 +69,7 @@ public BufferedImage histogramChange(BufferedImage iInput){
     public BufferedImage interpolationDicom(File fname, Interpolation interpolation) {
         BufferedImage newImage;
         try {
-            DicomFileContent fc = DicomTools.openDicomFile(fname);
+            DicomFileContent fc = DicomTools.openDicomFile(fname, new HU2RGBMapperBySilverstein());
             interpolation.pictureDicom = fc == null ? null : fc.getImage();
             double height = 1.25;
             double width = 1.25;
@@ -93,7 +94,7 @@ public BufferedImage histogramChange(BufferedImage iInput){
 
     public BufferedImage endImage(File fname) {
         try {
-            DicomFileContent fc = DicomTools.openDicomFile(fname);
+            DicomFileContent fc = DicomTools.openDicomFile(fname,new HU2RGBMapperBySilverstein());
             return fc.getImage();
         } catch (Exception e) {
             return null;
