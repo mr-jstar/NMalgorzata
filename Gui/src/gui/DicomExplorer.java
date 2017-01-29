@@ -13,6 +13,9 @@ import mydicom.DicomFileContent;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -23,7 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -116,6 +118,11 @@ public class DicomExplorer extends javax.swing.JFrame {
             private Point origin;
 
             @Override
+            public void mouseEntered(MouseEvent e) {
+                imageHolder.requestFocusInWindow();  // dzięki temu działa obsługa klawiszy +/-
+            }
+
+            @Override
             public void mousePressed(MouseEvent e) {
                 origin = new Point(e.getPoint());
             }
@@ -146,6 +153,56 @@ public class DicomExplorer extends javax.swing.JFrame {
         imageHolder.setAutoscrolls(true);
         imageHolder.addMouseListener(ma);
         imageHolder.addMouseMotionListener(ma);
+
+        imageHolder.setFocusable(true);  // uwaga - samo to nie wystarczy, trzeba jeszcze dodać imageHolder.requestFocusInWindow() wyżej, w obsłudze myszy
+        imageHolder.setFocusTraversalKeysEnabled(false);
+        imageHolder.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char keyChar = e.getKeyChar();
+                System.err.println("key typed " + e.getKeyChar() + "->" + e.getKeyCode());
+                if (keyChar == '+') {
+                    zoomSlider.setValue(zoomSlider.getValue() + zoomSlider.getMaximum() / 10);
+                    zoomer.stateChanged(new ChangeEvent(zoomSlider));
+                } else if (keyChar == '-') {
+                    zoomSlider.setValue(zoomSlider.getValue() - zoomSlider.getMaximum() / 10);
+                    zoomer.stateChanged(new ChangeEvent(zoomSlider));
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                //System.err.println("key pressed " + e.getKeyChar() + "->" + e.getKeyCode());
+                int keyCode = e.getKeyCode();
+                if (e.isActionKey()) {
+                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, imageHolder);
+                    if (viewPort != null) {
+                        Rectangle view = viewPort.getViewRect();
+                        switch (keyCode) {
+                            case KeyEvent.VK_LEFT:
+                                view.x -= 20;
+                                imageHolder.scrollRectToVisible(view);
+                                break;
+                            case KeyEvent.VK_RIGHT:
+                                view.x += 20;
+                                imageHolder.scrollRectToVisible(view);
+                                break;
+                            case KeyEvent.VK_UP:
+                                view.y -= 20;
+                                imageHolder.scrollRectToVisible(view);
+                                break;
+                            case KeyEvent.VK_DOWN:
+                                view.y += 20;
+                                imageHolder.scrollRectToVisible(view);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     /**
@@ -539,8 +596,11 @@ public class DicomExplorer extends javax.swing.JFrame {
                 iManager.repaint(zoomer.getCurrentScale());
                 patientData.setText(currentImg.getData());
                 updateStatus();
+                // to do dyskusji - może dodawać go do listy?
                 ((DefaultListModel) fileList.getModel()).removeAllElements();
                 ((DefaultListModel) fileList.getModel()).addElement(currentImg);
+                fileList.setSelectedIndex(0);
+                fileList.repaint();
                 System.out.println("nazwa wybranego pliku" + file.getName());
             } catch (Exception ex) {
                 Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
@@ -635,6 +695,8 @@ public class DicomExplorer extends javax.swing.JFrame {
                 }
             }
             currentImg = fileList.getModel().getElementAt(0);
+            fileList.setSelectedIndex(0);
+            fileList.repaint();
             iManager.updateImg(currentImg.getImage());
             iManager.repaint(zoomer.getCurrentScale());
             patientData.setText(currentImg.getData());
