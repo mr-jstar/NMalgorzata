@@ -11,6 +11,10 @@ import imageProcessing.HistogramEqualizationFilter;
 import imageProcessing.Negative;
 import mydicom.DicomFileContent;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.io.File;
@@ -27,6 +31,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -59,7 +65,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     public DicomExplorer() {
         initComponents();
-        iManager = new ImageManager(imagePanel);
+        iManager = new ImageManager(imageHolder);
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
         Hashtable labels = new Hashtable();
@@ -96,6 +102,42 @@ public class DicomExplorer extends javax.swing.JFrame {
         colorMappers.put(silversteinCMItem, new HU2RGBMapperBySilverstein());
         colorMappers.put(jstarCMItem, new HU2RGBMapperByJstar());
         colorMappers.put(grayscaleCMItem, new HU2GrayMapper());
+
+        MouseAdapter ma = new MouseAdapter() {
+
+            private Point origin;
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                origin = new Point(e.getPoint());
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (origin != null) {
+                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, imageHolder);
+                    if (viewPort != null) {
+                        int deltaX = origin.x - e.getX();
+                        int deltaY = origin.y - e.getY();
+
+                        Rectangle view = viewPort.getViewRect();
+                        view.x += deltaX;
+                        view.y += deltaY;
+
+                        imageHolder.scrollRectToVisible(view);
+                    }
+                }
+            }
+
+        };
+
+        imageHolder.setAutoscrolls(true);
+        imageHolder.addMouseListener(ma);
+        imageHolder.addMouseMotionListener(ma);
     }
 
     /**
@@ -127,7 +169,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         brightnessSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         jLabel4 = new javax.swing.JLabel();
         imgScroll = new javax.swing.JScrollPane();
-        imagePanel = new javax.swing.JLabel();
+        imageHolder = new javax.swing.JLabel();
         statusPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         status = new javax.swing.JLabel();
@@ -288,13 +330,13 @@ public class DicomExplorer extends javax.swing.JFrame {
         imgScroll.setMinimumSize(new java.awt.Dimension(96, 96));
         imgScroll.setPreferredSize(new java.awt.Dimension(544, 544));
 
-        imagePanel.setBackground(new java.awt.Color(0, 0, 0));
-        imagePanel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        imagePanel.setLabelFor(imagePanel);
-        imagePanel.setMaximumSize(new java.awt.Dimension(2048, 2048));
-        imagePanel.setMinimumSize(new java.awt.Dimension(64, 64));
-        imagePanel.setOpaque(true);
-        imgScroll.setViewportView(imagePanel);
+        imageHolder.setBackground(new java.awt.Color(0, 0, 0));
+        imageHolder.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        imageHolder.setLabelFor(imageHolder);
+        imageHolder.setMaximumSize(new java.awt.Dimension(2048, 2048));
+        imageHolder.setMinimumSize(new java.awt.Dimension(64, 64));
+        imageHolder.setOpaque(true);
+        imgScroll.setViewportView(imageHolder);
 
         mainPanel.add(imgScroll, java.awt.BorderLayout.CENTER);
 
@@ -505,7 +547,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         if (currentImg != null) {//sprawdza czy cos jest w 
             //System.out.println("jest obraz");
             if (result == JFileChooser.APPROVE_OPTION) {
-                ImageIcon icon = (ImageIcon) imagePanel.getIcon();
+                ImageIcon icon = (ImageIcon) imageHolder.getIcon();
                 BufferedImage obrazek = (BufferedImage) ((Image) icon.getImage());
                 File saveFile = chooser.getSelectedFile();
                 if (FilenameUtils.getExtension(saveFile.getName()).equalsIgnoreCase(".png")) {
@@ -529,9 +571,10 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void ask4ExitConfirmation() {
-        if( currentImg == null )
+        if (currentImg == null) {
             System.exit(0);
-        
+        }
+
         int opt = JOptionPane.showConfirmDialog(this, "Really exit?", "Exit requested", JOptionPane.YES_NO_OPTION);
 
         if (opt == 0) {
@@ -742,7 +785,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem gaussianFilterItem;
     private javax.swing.JRadioButtonMenuItem grayscaleCMItem;
     private javax.swing.JMenuItem histEqualizationItem;
-    private javax.swing.JLabel imagePanel;
+    private javax.swing.JLabel imageHolder;
     private javax.swing.JScrollPane imgScroll;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
