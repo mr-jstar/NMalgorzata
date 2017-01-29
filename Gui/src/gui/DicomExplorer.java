@@ -641,12 +641,14 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void ask4ExitConfirmation() {
         this.serializeState();
         if (currentImg == null) {
+            this.dispose();
             System.exit(0);
         }
 
         int opt = JOptionPane.showConfirmDialog(this, "Really exit?", "Exit requested", JOptionPane.YES_NO_OPTION);
 
         if (opt == 0) {
+            this.dispose();
             System.exit(0);
         }
     }
