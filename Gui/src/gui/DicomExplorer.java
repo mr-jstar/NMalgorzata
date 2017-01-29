@@ -18,6 +18,12 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -50,7 +56,8 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class DicomExplorer extends javax.swing.JFrame {
 
-    private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan"; // do poprawy
+    private final String rcPath = System.getProperty("user.home") + File.separator + ".dicomexplorerrc";
+    private String initialPath = ""; // serializuje to w Uniksie/Linuksie
 
     private File file;
     private DicomFileContent currentImg = null;
@@ -65,6 +72,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     public DicomExplorer() {
         initComponents();
+        deSerializeState();
         iManager = new ImageManager(imageHolder);
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
@@ -93,7 +101,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                     currentImg = fc;
                     iManager.updateImg(currentImg.getImage());
                     iManager.repaint(zoomer.getCurrentScale());
-                    patientData.setText(fc.getData());
+                    patientData.setText(currentImg.getData());
 
                 }
             }
@@ -529,7 +537,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                 currentImg = DicomTools.openDicomFile(file, getActiveMapper());
                 iManager.updateImg(currentImg.getImage());
                 iManager.repaint(zoomer.getCurrentScale());
-                patientData.setText(DicomTools.dataInf(file));
+                patientData.setText(currentImg.getData());
                 updateStatus();
                 ((DefaultListModel) fileList.getModel()).removeAllElements();
                 ((DefaultListModel) fileList.getModel()).addElement(currentImg);
@@ -571,6 +579,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void ask4ExitConfirmation() {
+        this.serializeState();
         if (currentImg == null) {
             System.exit(0);
         }
@@ -579,6 +588,24 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         if (opt == 0) {
             System.exit(0);
+        }
+    }
+
+    private void serializeState() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rcPath))) {
+            out.writeObject(initialPath);
+            out.close();
+        } catch (IOException i) {
+            ;
+        }
+    }
+
+    private void deSerializeState() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(rcPath))) {
+            initialPath = (String) in.readObject();
+            in.close();
+        } catch (Exception e) {
+            initialPath = "";
         }
     }
 
@@ -592,7 +619,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File[] list = chooser.getSelectedFiles();
             file = list[0];
-            initialPath = file.getPath();
+            initialPath = file.getParent();
             if (list.length > 1) {
                 try {
                     DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel(), getActiveMapper());
@@ -607,6 +634,11 @@ public class DicomExplorer extends javax.swing.JFrame {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            currentImg = fileList.getModel().getElementAt(0);
+            iManager.updateImg(currentImg.getImage());
+            iManager.repaint(zoomer.getCurrentScale());
+            patientData.setText(currentImg.getData());
+            updateStatus();
         }
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
