@@ -9,13 +9,14 @@ import imageProcessing.BrightnessEnhancer;
 import imageProcessing.GaussianFilter;
 import imageProcessing.HistogramEqualizationFilter;
 import imageProcessing.Negative;
-import experimental.SqrtBrighten;
 import mydicom.DicomFileContent;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -24,11 +25,16 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import mydicom.DicomTools;
+import mydicom.HU2GrayMapper;
+import mydicom.HU2RGBMapperByJstar;
+import mydicom.HU2RGBMapperBySilverstein;
+import mydicom.HUMapper;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -48,6 +54,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private HistogramEqualizationFilter equalizer;
     private GaussianFilter gaussian;
     private Negative negative;
+    private Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
 
     public DicomExplorer() {
         initComponents();
@@ -83,6 +90,10 @@ public class DicomExplorer extends javax.swing.JFrame {
                 }
             }
         });
+
+        colorMappers.put(silversteinCMItem, new HU2RGBMapperBySilverstein());
+        colorMappers.put(jstarCMItem, new HU2RGBMapperByJstar());
+        colorMappers.put(grayscaleCMItem, new HU2GrayMapper());
     }
 
     /**
@@ -132,8 +143,12 @@ public class DicomExplorer extends javax.swing.JFrame {
         histEqualizationItem = new javax.swing.JMenuItem();
         gaussianFilterItem = new javax.swing.JMenuItem();
         negativeItem = new javax.swing.JMenuItem();
-        optionsMenu = new javax.swing.JMenu();
+        viewMenu = new javax.swing.JMenu();
         switchListViewItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        silversteinCMItem = new javax.swing.JRadioButtonMenuItem();
+        jstarCMItem = new javax.swing.JRadioButtonMenuItem();
+        grayscaleCMItem = new javax.swing.JRadioButtonMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
@@ -408,7 +423,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         menuBar.add(filterMenu);
 
-        optionsMenu.setText("View");
+        viewMenu.setText("View");
 
         switchListViewItem.setText("List of file names");
         switchListViewItem.addActionListener(new java.awt.event.ActionListener() {
@@ -416,9 +431,36 @@ public class DicomExplorer extends javax.swing.JFrame {
                 switchListViewItemActionPerformed(evt);
             }
         });
-        optionsMenu.add(switchListViewItem);
+        viewMenu.add(switchListViewItem);
+        viewMenu.add(jSeparator1);
 
-        menuBar.add(optionsMenu);
+        silversteinCMItem.setSelected(true);
+        silversteinCMItem.setText("Silverstein Color Map");
+        silversteinCMItem.setName(""); // NOI18N
+        silversteinCMItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                silversteinCMItemActionPerformed(evt);
+            }
+        });
+        viewMenu.add(silversteinCMItem);
+
+        jstarCMItem.setText("jstar Color Map");
+        jstarCMItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jstarCMItemActionPerformed(evt);
+            }
+        });
+        viewMenu.add(jstarCMItem);
+
+        grayscaleCMItem.setText("grayscale Color Map");
+        grayscaleCMItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                grayscaleCMItemActionPerformed(evt);
+            }
+        });
+        viewMenu.add(grayscaleCMItem);
+
+        menuBar.add(viewMenu);
 
         setJMenuBar(menuBar);
 
@@ -435,12 +477,13 @@ public class DicomExplorer extends javax.swing.JFrame {
             file = chooser.getSelectedFile();
             initialPath = file.getPath();
             try {
-                currentImg = DicomTools.openDicomFile(file);
+                currentImg = DicomTools.openDicomFile(file,getActiveMapper());
                 iManager.updateImg(currentImg.getImage());
                 iManager.repaint(zoomer.getCurrentScale());
                 patientData.setText(DicomTools.dataInf(file));
                 updateStatus();
                 ((DefaultListModel) fileList.getModel()).removeAllElements();
+                ((DefaultListModel) fileList.getModel()).addElement(currentImg);
                 System.out.println("nazwa wybranego pliku" + file.getName());
             } catch (Exception ex) {
                 Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
@@ -458,7 +501,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                 ImageIcon icon = (ImageIcon) imagePanel.getIcon();
                 BufferedImage obrazek = (BufferedImage) ((Image) icon.getImage());
                 File saveFile = chooser.getSelectedFile();
-                if (FilenameUtils.getExtension(saveFile.getName()).equalsIgnoreCase(".png")) { 
+                if (FilenameUtils.getExtension(saveFile.getName()).equalsIgnoreCase(".png")) {
                 } else {
                     saveFile = new File(saveFile.toString() + ".png");
                     saveFile = new File(saveFile.getParentFile(), FilenameUtils.getBaseName(saveFile.getName()) + ".png"); // ALTERNATIVELY: remove the extension (if any) and replace it with ".xml"
@@ -491,14 +534,14 @@ public class DicomExplorer extends javax.swing.JFrame {
             initialPath = file.getPath();
             if (list.length > 1) {
                 try {
-                    DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel());
+                    DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel(),getActiveMapper());
                 } catch (Exception ex) {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 File dir = file.isFile() ? file.getParentFile() : file;
                 try {
-                    DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel());
+                    DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel(), getActiveMapper() );
                 } catch (Exception ex) {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -581,6 +624,42 @@ public class DicomExplorer extends javax.swing.JFrame {
         updateStatus();
     }//GEN-LAST:event_negativeItemActionPerformed
 
+    private void silversteinCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_silversteinCMItemActionPerformed
+        jRadioButtonMenuItemAction((JRadioButtonMenuItem) evt.getSource());
+    }//GEN-LAST:event_silversteinCMItemActionPerformed
+
+    private void jstarCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jstarCMItemActionPerformed
+        jRadioButtonMenuItemAction((JRadioButtonMenuItem) evt.getSource());
+    }//GEN-LAST:event_jstarCMItemActionPerformed
+
+    private void grayscaleCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_grayscaleCMItemActionPerformed
+        jRadioButtonMenuItemAction((JRadioButtonMenuItem) evt.getSource());
+    }//GEN-LAST:event_grayscaleCMItemActionPerformed
+
+    private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
+        for (JRadioButtonMenuItem i : colorMappers.keySet()) {
+            i.setSelected(false);
+            i.setEnabled(true);
+        }
+        src.setSelected(true);
+        src.setEnabled(false);
+        for (int i = 0; i < fileList.getModel().getSize(); i++) {
+            fileList.getModel().getElementAt(i).updateImage(colorMappers.get(src));
+        }
+        fileList.repaint();
+        iManager.updateImg(currentImg.getImage());
+        iManager.repaint(zoomer.getCurrentScale());
+        updateStatus();
+    }
+    
+    private HUMapper getActiveMapper() {
+        for( JRadioButtonMenuItem b : colorMappers.keySet() ) {
+            if( b.isSelected() )
+                return colorMappers.get(b);
+        }
+        return null; // should never happen
+    }
+
     private void updateStatus() {
         StringBuilder sb = new StringBuilder("HUE: " + currentImg.getHURange() + " Applied filters: ");
         for (BufferedImageOp f : iManager) {
@@ -638,6 +717,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel filesTitle;
     private javax.swing.JMenu filterMenu;
     private javax.swing.JMenuItem gaussianFilterItem;
+    private javax.swing.JRadioButtonMenuItem grayscaleCMItem;
     private javax.swing.JMenuItem histEqualizationItem;
     private javax.swing.JLabel imagePanel;
     private javax.swing.JScrollPane imgScroll;
@@ -649,21 +729,24 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JRadioButtonMenuItem jstarCMItem;
     private javax.swing.JPanel leftPanel;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem negativeItem;
     private javax.swing.JMenuItem openDirMenuItem;
     private javax.swing.JMenuItem openFileMenuItem;
-    private javax.swing.JMenu optionsMenu;
     private javax.swing.JLabel patientData;
     private javax.swing.JPanel rightPanel;
     private javax.swing.JMenuItem savePNGMenuItem;
     private javax.swing.JPopupMenu.Separator separator1;
     private javax.swing.JPopupMenu.Separator separator2;
+    private javax.swing.JRadioButtonMenuItem silversteinCMItem;
     private javax.swing.JLabel status;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JMenuItem switchListViewItem;
+    private javax.swing.JMenu viewMenu;
     private javax.swing.JButton zoomInit;
     private javax.swing.JPanel zoomPanel;
     private javax.swing.JSlider zoomSlider;

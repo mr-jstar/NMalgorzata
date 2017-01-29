@@ -29,8 +29,7 @@ public class ScaleImage {
         this.h = (int) (imageInput.getHeight() * height);
         this.w = (int) (imageInput.getWidth() * width);
 
-        BufferedImage newImage = new BufferedImage(w, h,
-                BufferedImage.TYPE_USHORT_GRAY);
+        BufferedImage newImage = new BufferedImage(w, h, imageInput.getType());
         Graphics2D g = newImage.createGraphics();
         try {
             g.clearRect(0, 0, w, h);

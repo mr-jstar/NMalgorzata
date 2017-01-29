@@ -111,7 +111,7 @@ public class DicomTools {
 
     // Pobiera pliki z obrazami z katalogu i pakuje je do ListModel
     // oraz tworzy mapę obraz -> nazwa pliku
-    public static void readDicomDir(File directory, DefaultListModel<DicomFileContent> model) throws IOException {
+    public static void readDicomDir(File directory, DefaultListModel<DicomFileContent> model, HUMapper mapper) throws IOException {
         System.err.println("Opening " + directory.getAbsolutePath());
         File[] imageFiles = directory.listFiles(new FilenameFilter() {
             @Override
@@ -120,16 +120,16 @@ public class DicomTools {
             }
         });
         System.err.println(imageFiles.length + " files found");
-        processFileList(imageFiles, model);
+        processFileList(imageFiles, model, mapper);
         System.err.println(model.getSize() + " images read from " + directory);
     }
 
-    public static void processFileList(File[] imageFiles, DefaultListModel<DicomFileContent> model) throws IOException {
+    public static void processFileList(File[] imageFiles, DefaultListModel<DicomFileContent> model, HUMapper mapper) throws IOException {
         ArrayList<DicomFileContent> list = new ArrayList<>();
         for (File file : imageFiles) {
             //System.err.print("Trying " + file.getName());
             try {
-                DicomFileContent im = openDicomFile(file);
+                DicomFileContent im = openDicomFile(file,mapper);
                 if (im != null) {
                     list.add(im);
                     //System.err.println(" -> ok! : ");
@@ -148,7 +148,7 @@ public class DicomTools {
         }
     }
 
-    public static DicomFileContent openDicomFile(File file) throws Exception {
+    public static DicomFileContent openDicomFile(File file, HUMapper mapper) throws Exception {
         BufferedImage bImg = null;
         int rows = 0; //tworzenie smiennej wiersz
         int cols = 0;
@@ -158,6 +158,7 @@ public class DicomTools {
         short hmin = 1000, hmax = -1000;
         String fname = file.getName();
         String end = ".dcm";
+        short[] ldata= null;
         if (fname.endsWith(end)) {
             DicomFile ldcm = new DicomFile(file);
             ldcm.open();
@@ -185,33 +186,21 @@ public class DicomTools {
                     location = Double.parseDouble(lElement.getSingleStringValue());
                 }
                 if (tagName.equals("Pixel Data")) {
-                    short[] ldata = lElement.getShortValues();
+                    ldata = lElement.getShortValues();
                     if (rows * cols != ldata.length) {
                         break;
                     }
-                    bImg = new BufferedImage(cols, rows, BufferedImage.TYPE_USHORT_GRAY);
-                    Graphics2D cg = bImg.createGraphics();
-                    final int MX = 2 * Short.MAX_VALUE;
-                    //System.err.println("MX="+MX);
                     for (int i = 0; i < ldata.length; i++) {
                         int x = i % cols;
                         int y = i / cols;
-                        short gray_value = ldata[i];
-                        short hounsfield = (short) (gray_value * slope + intercept);
-                        if (hounsfield < hmin) {
-                            hmin = hounsfield;
-                        }
-                        if (hounsfield > hmax) {
-                            hmax = hounsfield;
-                        }
-                        double hd = (hounsfield + 1000) / 4000.0;
-                        short pi = (short) (MX * hd);
-                        bImg.setRGB(x, y, pi);
+                        ldata[i] = (short) (ldata[i] * slope + intercept);
                     }
+                    //bImg = (new HU2GrayMapper()).map(rows, cols, ldata);
+                    bImg = mapper.map(rows, cols, ldata);
                 }
             }
         }
-        return bImg == null ? null : new DicomFileContent(file, location, hmin, hmax, bImg);
+        return bImg == null ? null : new DicomFileContent(file, location, ldata, bImg);
     }
 
     // Wyświetla strukturę Dicoma do standardowego wyjścia

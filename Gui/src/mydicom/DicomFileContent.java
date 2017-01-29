@@ -17,20 +17,32 @@ import java.util.Objects;
  */
 public class DicomFileContent implements Comparable<DicomFileContent> {
 
-    final private BufferedImage image;
+    private BufferedImage image;
     final private String name;
     final private String fileData;
     final private double sliceLocation;
-    final private short hmin,hmax;
+    private short[] hu;
+    private short hmin = 5000, hmax= -5000;
 
-    public DicomFileContent(File file, double location, short hmin, short hmax, BufferedImage img)
+    public DicomFileContent(File file, double location, short[] hu, BufferedImage img)
             throws Exception {
         this.name = file.getName();
         this.sliceLocation = location;
         this.image = img;
         fileData = DicomTools.dataInf(file);
-        this.hmin = hmin;
-        this.hmax = hmax;
+        this.hu = hu;
+        for (short l : hu) {
+            if (l < hmin) {
+                hmin = l;
+            }
+            if (l > hmax) {
+                hmax = l;
+            }
+        }
+    }
+    
+    public void updateImage(HUMapper mapper) {
+        image = mapper.map(image.getWidth(), image.getHeight(), hu);
     }
 
     /**
@@ -74,9 +86,9 @@ public class DicomFileContent implements Comparable<DicomFileContent> {
     public double getHeight() {
         return image.getWidth();
     }
-    
-    public AbstractMap.SimpleImmutableEntry<Short,Short> getHURange() {
-        return new AbstractMap.SimpleImmutableEntry<>(hmin,hmax);
+
+    public AbstractMap.SimpleImmutableEntry<Short, Short> getHURange() {
+        return new AbstractMap.SimpleImmutableEntry<>(hmin, hmax);
     }
 
     @Override
