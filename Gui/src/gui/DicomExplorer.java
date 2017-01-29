@@ -25,6 +25,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
@@ -43,7 +44,7 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class DicomExplorer extends javax.swing.JFrame {
 
-    private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan";
+    private String initialPath = "/home/jstar/tmp/NMalgorzata/Gui/data/krtan"; // do poprawy
 
     private File file;
     private DicomFileContent currentImg = null;
@@ -54,7 +55,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private HistogramEqualizationFilter equalizer;
     private GaussianFilter gaussian;
     private Negative negative;
-    private Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
+    private final Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
 
     public DicomExplorer() {
         initComponents();
@@ -69,8 +70,9 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomSlider.setLabelTable(labels);
 
         labels = new Hashtable();
-        labels.put(20, new JLabel("normal"));
-        labels.put(brightnessSlider.getMaximum(), new JLabel("extreme"));
+        labels.put(20, new JLabel("dark"));
+        labels.put(60, new JLabel("normal"));
+        labels.put(brightnessSlider.getMaximum(), new JLabel("bright"));
         brightnessSlider.setLabelTable(labels);
 
         fileList.setModel(new DefaultListModel<DicomFileContent>());
@@ -150,8 +152,13 @@ public class DicomExplorer extends javax.swing.JFrame {
         jstarCMItem = new javax.swing.JRadioButtonMenuItem();
         grayscaleCMItem = new javax.swing.JRadioButtonMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         filePanel.setMaximumSize(new java.awt.Dimension(180, 2048));
         filePanel.setMinimumSize(new java.awt.Dimension(180, 140));
@@ -256,7 +263,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         brightnessSlider.setPaintLabels(true);
         brightnessSlider.setPaintTicks(true);
         brightnessSlider.setToolTipText("");
-        brightnessSlider.setValue(20);
+        brightnessSlider.setValue(60);
         brightnessSlider.setAutoscrolls(true);
         brightnessSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -477,7 +484,7 @@ public class DicomExplorer extends javax.swing.JFrame {
             file = chooser.getSelectedFile();
             initialPath = file.getPath();
             try {
-                currentImg = DicomTools.openDicomFile(file,getActiveMapper());
+                currentImg = DicomTools.openDicomFile(file, getActiveMapper());
                 iManager.updateImg(currentImg.getImage());
                 iManager.repaint(zoomer.getCurrentScale());
                 patientData.setText(DicomTools.dataInf(file));
@@ -495,8 +502,8 @@ public class DicomExplorer extends javax.swing.JFrame {
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileFilter(new FileNameExtensionFilter(".png", "png"));
         int result = chooser.showSaveDialog(null);
-        if (imagePanel.getIcon() != null) {//sprawdza czy cos jest w 
-            System.out.println("obraz jest w jalbaej");
+        if (currentImg != null) {//sprawdza czy cos jest w 
+            //System.out.println("jest obraz");
             if (result == JFileChooser.APPROVE_OPTION) {
                 ImageIcon icon = (ImageIcon) imagePanel.getIcon();
                 BufferedImage obrazek = (BufferedImage) ((Image) icon.getImage());
@@ -518,8 +525,19 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_savePNGMenuItemActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-        System.exit(1);
+        ask4ExitConfirmation();
     }//GEN-LAST:event_exitMenuItemActionPerformed
+
+    private void ask4ExitConfirmation() {
+        if( currentImg == null )
+            System.exit(0);
+        
+        int opt = JOptionPane.showConfirmDialog(this, "Really exit?", "Exit requested", JOptionPane.YES_NO_OPTION);
+
+        if (opt == 0) {
+            System.exit(0);
+        }
+    }
 
     private void openDirMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openDirMenuItemActionPerformed
 
@@ -534,14 +552,14 @@ public class DicomExplorer extends javax.swing.JFrame {
             initialPath = file.getPath();
             if (list.length > 1) {
                 try {
-                    DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel(),getActiveMapper());
+                    DicomTools.processFileList(list, (DefaultListModel<DicomFileContent>) fileList.getModel(), getActiveMapper());
                 } catch (Exception ex) {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 File dir = file.isFile() ? file.getParentFile() : file;
                 try {
-                    DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel(), getActiveMapper() );
+                    DicomTools.readDicomDir(dir, (DefaultListModel<DicomFileContent>) fileList.getModel(), getActiveMapper());
                 } catch (Exception ex) {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -554,9 +572,9 @@ public class DicomExplorer extends javax.swing.JFrame {
             if (brightness != null) {
                 iManager.rmFilter(brightness);
             }
-            int contrastValue = brightnessSlider.getValue();
-            if (contrastValue != 20) {
-                brightness = new BrightnessEnhancer(contrastValue / 20.0f, 0.0f);
+            int brightnessValue = brightnessSlider.getValue();
+            if (brightnessValue != 60) {
+                brightness = new BrightnessEnhancer(brightnessValue / 60.0f, 0.0f);
                 iManager.addFilter(brightness);
             }
             iManager.repaint(zoomer.getCurrentScale());
@@ -636,6 +654,10 @@ public class DicomExplorer extends javax.swing.JFrame {
         jRadioButtonMenuItemAction((JRadioButtonMenuItem) evt.getSource());
     }//GEN-LAST:event_grayscaleCMItemActionPerformed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        ask4ExitConfirmation();
+    }//GEN-LAST:event_formWindowClosing
+
     private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
         for (JRadioButtonMenuItem i : colorMappers.keySet()) {
             i.setSelected(false);
@@ -651,17 +673,18 @@ public class DicomExplorer extends javax.swing.JFrame {
         iManager.repaint(zoomer.getCurrentScale());
         updateStatus();
     }
-    
+
     private HUMapper getActiveMapper() {
-        for( JRadioButtonMenuItem b : colorMappers.keySet() ) {
-            if( b.isSelected() )
+        for (JRadioButtonMenuItem b : colorMappers.keySet()) {
+            if (b.isSelected()) {
                 return colorMappers.get(b);
+            }
         }
         return null; // should never happen
     }
 
     private void updateStatus() {
-        StringBuilder sb = new StringBuilder("HUE: " + currentImg.getHURange() + " Applied filters: ");
+        StringBuilder sb = new StringBuilder("HU: " + currentImg.getHURange() + " Applied filters: ");
         for (BufferedImageOp f : iManager) {
             sb.append(f.toString()).append(' ');
         }
