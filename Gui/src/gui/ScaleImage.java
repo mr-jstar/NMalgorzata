@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -54,16 +55,9 @@ public class ScaleImage {
         int[] rParameter = new int[pixel];
         int[] gParameter = new int[pixel];
         int[] bParameter = new int[pixel];
-        //petle for przechodza po poszczególnych elemntach tablic zawierajacych kolory nadajac im wartość 0
-        for (int i = 0; i < rParameter.length; i++) {
-            rParameter[i] = 0;
-        }
-        for (int i = 0; i < gParameter.length; i++) {
-            gParameter[i] = 0;
-        }
-        for (int i = 0; i < bParameter.length; i++) {
-            bParameter[i] = 0;
-        }
+        Arrays.fill(rParameter, 0);
+        Arrays.fill(gParameter, 0);
+        Arrays.fill(bParameter, 0);
 
         int k = 0;
         int rVal;
