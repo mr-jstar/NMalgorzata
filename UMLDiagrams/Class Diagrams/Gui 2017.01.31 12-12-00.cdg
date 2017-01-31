@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ClassDiagram name="Gui">
+  <ClassDiagramComponents>
+    <Class name="DicomFileContent" package="mydicom" visibility="public" xPosition="-59.0" yPosition="-278.0">
+      <Fields>
+        <Field name="image" type="BufferedImage" visibility="private"/>
+        <Field name="name" type="String" visibility="private" isFinal="true"/>
+        <Field name="fileData" type="String" visibility="private" isFinal="true"/>
+        <Field name="sliceLocation" type="double" visibility="private" isFinal="true"/>
+        <Field name="hu" type="short[]" visibility="private"/>
+        <Field name="hmin" type="short" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="File" name="file"/>
+          <Argument type="double" name="location"/>
+          <Argument type="short[]" name="hu"/>
+          <Argument type="BufferedImage" name="img"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="updateImage" returnType="HUMapper" visibility="public">
+          <Argument type="HUMapper" name="mapper"/>
+        </Method>
+        <Method name="getImage" returnType="BufferedImage" visibility="public"/>
+        <Method name="getName" returnType="String" visibility="public"/>
+        <Method name="getData" returnType="String" visibility="public"/>
+        <Method name="getLocation" returnType="double" visibility="public"/>
+        <Method name="getWidth" returnType="double" visibility="public"/>
+        <Method name="getHeight" returnType="double" visibility="public"/>
+        <Method name="getHURange" returnType="AbstractMap.SimpleImmutableEntry&lt;Short, Short&gt;" visibility="public"/>
+        <Method name="equals" returnType="Object" visibility="public">
+          <Argument type="Object" name="o"/>
+        </Method>
+        <Method name="hashCode" returnType="int" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+        <Method name="compareTo" returnType="DicomFileContent" visibility="public">
+          <Argument type="DicomFileContent" name="o"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="HU2RGBMapperByJstar" package="mydicom" visibility="public" xPosition="746.0" yPosition="22.0">
+      <Fields>
+        <Field name="HS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="RS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="GS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="BS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="map" returnType="short[]" visibility="public">
+          <Argument type="int" name="rows"/>
+          <Argument type="int" name="cols"/>
+          <Argument type="short[]" name="hu"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="DicomTools" package="mydicom" visibility="public" xPosition="933.0" yPosition="264.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="dataInf" returnType="File" visibility="public" isStatic="true">
+          <Argument type="File" name="file"/>
+        </Method>
+        <Method name="readDicomDir" returnType="HUMapper" visibility="public" isStatic="true">
+          <Argument type="File" name="directory"/>
+          <Argument type="DefaultListModel&lt;DicomFileContent&gt;" name="model"/>
+          <Argument type="HUMapper" name="mapper"/>
+        </Method>
+        <Method name="processFileList" returnType="HUMapper" visibility="public" isStatic="true">
+          <Argument type="File[]" name="imageFiles"/>
+          <Argument type="DefaultListModel&lt;DicomFileContent&gt;" name="model"/>
+          <Argument type="HUMapper" name="mapper"/>
+        </Method>
+        <Method name="openDicomFile" returnType="HUMapper" visibility="public" isStatic="true">
+          <Argument type="File" name="file"/>
+          <Argument type="HUMapper" name="mapper"/>
+        </Method>
+        <Method name="reportDCM" returnType="String" visibility="public" isStatic="true">
+          <Argument type="String" name="fname"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="HU2RGBMapperBySilverstein" package="mydicom" visibility="public" xPosition="442.0" yPosition="-44.0">
+      <Fields>
+        <Field name="HS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="RS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="GS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+        <Field name="BS" type="short[]" visibility="package" isStatic="true" isFinal="true"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="map" returnType="short[]" visibility="public">
+          <Argument type="int" name="rows"/>
+          <Argument type="int" name="cols"/>
+          <Argument type="short[]" name="hu"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="HU2GrayMapper" package="mydicom" visibility="public" xPosition="734.0" yPosition="-22.0">
+      <Fields>
+        <Field name="MX" type="int" visibility="package" isStatic="true" isFinal="true"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="map" returnType="short[]" visibility="public">
+          <Argument type="int" name="rows"/>
+          <Argument type="int" name="cols"/>
+          <Argument type="short[]" name="hu"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="GammaCorrection" package="todo" visibility="public" xPosition="1820.0" yPosition="20.0">
+      <Fields>
+        <Field name="y" type="double" visibility="package"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="histogramChange" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+        <Method name="interpolationDicom" returnType="Interpolation" visibility="public">
+          <Argument type="File" name="fname"/>
+          <Argument type="Interpolation" name="interpolation"/>
+        </Method>
+        <Method name="endImage" returnType="File" visibility="public">
+          <Argument type="File" name="fname"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="Interpolation" package="todo" visibility="public" xPosition="2714.0" yPosition="143.0">
+      <Fields>
+        <Field name="pictureDicom" type="BufferedImage" visibility="package"/>
+      </Fields>
+      <Constructors/>
+      <Methods/>
+    </Class>
+    <Class name="MedianaFilter" package="todo" visibility="public" xPosition="2704.0" yPosition="973.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="histogramChange" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="improvQualityDicom" package="todo" visibility="public" xPosition="2765.0" yPosition="754.0">
+      <Fields>
+        <Field name="inI" type="Interpolation" visibility="package"/>
+        <Field name="gmC" type="GammaCorrection" visibility="package"/>
+        <Field name="mF" type="MedianaFilter" visibility="package"/>
+        <Field name="gF" type="GaussianFilter" visibility="package"/>
+        <Field name="sI" type="StretchingImage" visibility="package"/>
+        <Field name="eI" type="HistogramEqualizationFilter" visibility="package"/>
+      </Fields>
+      <Constructors/>
+      <Methods/>
+    </Class>
+    <Class name="StretchingImage" package="todo" visibility="public" xPosition="2519.0" yPosition="402.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="histLUTi" returnType="BufferedImage" visibility="private" isStatic="true">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+        <Method name="histogramAdd" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="SqrtBrighten" package="experimental" visibility="public" xPosition="2595.0" yPosition="488.0">
+      <Fields>
+        <Field name="data" type="byte[]" visibility="private" isStatic="true" isFinal="true"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="filter" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="input"/>
+          <Argument type="BufferedImage" name="output"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+      </Methods>
+    </Class>
+    <Class name="JLabelScrollTest" package="experimental" visibility="public" xPosition="2704.0" yPosition="277.0">
+      <Fields/>
+      <Constructors>
+        <Constructor visibility="public"/>
+      </Constructors>
+      <Methods>
+        <Method name="main" returnType="String[]" visibility="public" isStatic="true">
+          <Argument type="String[]" name="args"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="MyLookUp" package="experimental" visibility="public" xPosition="2675.0" yPosition="196.0">
+      <Fields>
+        <Field name="ltable" type="LookupTable" visibility="private"/>
+        <Field name="numComponents" type="int" visibility="private"/>
+        <Field name="hints" type="RenderingHints" visibility="package"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="LookupTable" name="lookup"/>
+          <Argument type="RenderingHints" name="hints"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="getTable" returnType="LookupTable" visibility="public" isFinal="true"/>
+        <Method name="filter" returnType="BufferedImage" visibility="public" isFinal="true">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="BufferedImage" name="dst"/>
+        </Method>
+        <Method name="filter" returnType="WritableRaster" visibility="public" isFinal="true">
+          <Argument type="Raster" name="src"/>
+          <Argument type="WritableRaster" name="dst"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public" isFinal="true">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="getBounds2D" returnType="Raster" visibility="public" isFinal="true">
+          <Argument type="Raster" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="createCompatibleDestRaster" returnType="Raster" visibility="public">
+          <Argument type="Raster" name="src"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public" isFinal="true">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public" isFinal="true"/>
+        <Method name="byteFilter" returnType="int" visibility="private" isFinal="true">
+          <Argument type="ByteLookupTable" name="lookup"/>
+          <Argument type="Raster" name="src"/>
+          <Argument type="WritableRaster" name="dst"/>
+          <Argument type="int" name="width"/>
+          <Argument type="int" name="height"/>
+          <Argument type="int" name="numBands"/>
+        </Method>
+        <Method name="shortFilter" returnType="int" visibility="private" isFinal="true">
+          <Argument type="ShortLookupTable" name="lookup"/>
+          <Argument type="Raster" name="src"/>
+          <Argument type="WritableRaster" name="dst"/>
+          <Argument type="int" name="width"/>
+          <Argument type="int" name="height"/>
+          <Argument type="int" name="numBands"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="ImageManager" package="gui" visibility="public" xPosition="-77.0" yPosition="6.0">
+      <Fields>
+        <Field name="img" type="BufferedImage" visibility="private"/>
+        <Field name="scaler" type="ScaleImage" visibility="private" isStatic="true" isFinal="true"/>
+        <Field name="imagePanel" type="JLabel" visibility="private" isFinal="true"/>
+        <Field name="filters" type="ArrayList&lt;BufferedImageOp&gt;" visibility="private" isFinal="true"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="JLabel" name="panel"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="updateImg" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="image"/>
+        </Method>
+        <Method name="addFilter" returnType="BufferedImageOp" visibility="public">
+          <Argument type="BufferedImageOp" name="f"/>
+        </Method>
+        <Method name="rmFilter" returnType="BufferedImageOp" visibility="public">
+          <Argument type="BufferedImageOp" name="f"/>
+        </Method>
+        <Method name="clearFilters" returnType="void" visibility="public"/>
+        <Method name="iterator" returnType="Iterator&lt;BufferedImageOp&gt;" visibility="public"/>
+        <Method name="repaint" returnType="double" visibility="public">
+          <Argument type="double" name="scale"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="ZoomSliderListener" package="gui" visibility="public" xPosition="13.0" yPosition="742.0">
+      <Fields>
+        <Field name="manager" type="ImageManager" visibility="private" isFinal="true"/>
+        <Field name="scale" type="double" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="ImageManager" name="manager"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="getCurrentScale" returnType="double" visibility="public"/>
+        <Method name="stateChanged" returnType="ChangeEvent" visibility="public">
+          <Argument type="ChangeEvent" name="ce"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="DicomExplorer" package="gui" visibility="public" xPosition="-148.0" yPosition="190.0">
+      <Fields>
+        <Field name="rcPath" type="String" visibility="private" isFinal="true"/>
+        <Field name="initialPath" type="String" visibility="private"/>
+        <Field name="file" type="File" visibility="private"/>
+        <Field name="listRenderer" type="IconCellRenderer" visibility="private" isFinal="true"/>
+        <Field name="zoomer" type="ZoomSliderListener" visibility="private"/>
+        <Field name="iManager" type="ImageManager" visibility="private" isFinal="true"/>
+        <Field name="brightness" type="BrightnessEnhancer" visibility="private"/>
+        <Field name="equalizer" type="HistogramEqualizationFilter" visibility="private"/>
+        <Field name="gaussian" type="GaussianFilter" visibility="private"/>
+        <Field name="negative" type="Negative" visibility="private"/>
+        <Field name="colorMappers" type="Map&lt;JRadioButtonMenuItem, HUMapper&gt;" visibility="private" isFinal="true"/>
+        <Field name="brightnessSlider" type="javax.swing.JSlider" visibility="private"/>
+        <Field name="contrastPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="controlPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="exitMenuItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="fileList" type="javax.swing.JList&lt;DicomFileContent&gt;" visibility="private"/>
+        <Field name="fileListScroll" type="javax.swing.JScrollPane" visibility="private"/>
+        <Field name="fileMenu" type="javax.swing.JMenu" visibility="private"/>
+        <Field name="filePanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="filesTitle" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="filterMenu" type="javax.swing.JMenu" visibility="private"/>
+        <Field name="gaussianFilterItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="grayscaleCMItem" type="javax.swing.JRadioButtonMenuItem" visibility="private"/>
+        <Field name="histEqualizationItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="imageHolder" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="imgScroll" type="javax.swing.JScrollPane" visibility="private"/>
+        <Field name="jFileChooser1" type="javax.swing.JFileChooser" visibility="private"/>
+        <Field name="jLabel1" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jLabel2" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jLabel3" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jLabel4" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jLabel5" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jPanel1" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="jPanel2" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="jSeparator1" type="javax.swing.JPopupMenu.Separator" visibility="private"/>
+        <Field name="jstarCMItem" type="javax.swing.JRadioButtonMenuItem" visibility="private"/>
+        <Field name="leftPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="mainPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="menuBar" type="javax.swing.JMenuBar" visibility="private"/>
+        <Field name="negativeItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="openDirMenuItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="openFileMenuItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="patientData" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="rightPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="savePNGMenuItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="separator1" type="javax.swing.JPopupMenu.Separator" visibility="private"/>
+        <Field name="separator2" type="javax.swing.JPopupMenu.Separator" visibility="private"/>
+        <Field name="silversteinCMItem" type="javax.swing.JRadioButtonMenuItem" visibility="private"/>
+        <Field name="status" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="statusPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="switchListViewItem" type="javax.swing.JMenuItem" visibility="private"/>
+        <Field name="viewMenu" type="javax.swing.JMenu" visibility="private"/>
+        <Field name="zoomInit" type="javax.swing.JButton" visibility="private"/>
+        <Field name="zoomPanel" type="javax.swing.JPanel" visibility="private"/>
+        <Field name="zoomSlider" type="javax.swing.JSlider" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public"/>
+      </Constructors>
+      <Methods>
+        <Method name="initComponents" returnType="// &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents void" visibility="private"/>
+        <Method name="openFileMenuItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="savePNGMenuItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="exitMenuItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="ask4ExitConfirmation" returnType="void" visibility="private"/>
+        <Method name="serializeState" returnType="void" visibility="private"/>
+        <Method name="deSerializeState" returnType="void" visibility="private"/>
+        <Method name="openDirMenuItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="brightnessSliderStateChanged" returnType="javax.swing.event.ChangeEvent" visibility="private">
+          <Argument type="javax.swing.event.ChangeEvent" name="evt"/>
+        </Method>
+        <Method name="switchListViewItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="zoomInitActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="histEqualizationItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="gaussianFilterItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="negativeItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="silversteinCMItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="jstarCMItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="grayscaleCMItemActionPerformed" returnType="java.awt.event.ActionEvent" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="formWindowClosing" returnType="java.awt.event.WindowEvent" visibility="private">
+          <Argument type="java.awt.event.WindowEvent" name="evt"/>
+        </Method>
+        <Method name="jRadioButtonMenuItemAction" returnType="JRadioButtonMenuItem" visibility="private">
+          <Argument type="JRadioButtonMenuItem" name="src"/>
+        </Method>
+        <Method name="getActiveMapper" returnType="HUMapper" visibility="private"/>
+        <Method name="updateStatus" returnType="void" visibility="private"/>
+        <Method name="main" returnType="String" visibility="public" isStatic="true">
+          <Argument type="String" name="args"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="IconCellRenderer" package="gui" visibility="public" xPosition="-284.0" yPosition="572.0">
+      <Fields>
+        <Field name="serialVersionUID" type="long" visibility="private" isStatic="true" isFinal="true"/>
+        <Field name="size" type="int" visibility="private"/>
+        <Field name="icon" type="BufferedImage" visibility="private"/>
+        <Field name="defaultIconSize" type="int" visibility="public" isStatic="true"/>
+        <Field name="showText" type="boolean" visibility="private"/>
+        <Field name="focusBorder" type="Border" visibility="private" isStatic="true"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="package"/>
+        <Constructor visibility="package">
+          <Argument type="int" name="size"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="switchView" returnType="void" visibility="public"/>
+        <Method name="getListCellRendererComponent" returnType="boolean" visibility="public">
+          <Argument type="JList" name="list"/>
+          <Argument type="Object" name="value"/>
+          <Argument type="int" name="index"/>
+          <Argument type="boolean" name="isSelected"/>
+          <Argument type="boolean" name="cellHasFocus"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="ScaleImage" package="gui" visibility="public" xPosition="-358.0" yPosition="-57.0">
+      <Fields>
+        <Field name="w" type="int" visibility="package"/>
+        <Field name="h" type="int" visibility="package"/>
+      </Fields>
+      <Constructors/>
+      <Methods>
+        <Method name="makeImage" returnType="double" visibility="public">
+          <Argument type="BufferedImage" name="imageInput"/>
+          <Argument type="double" name="height"/>
+          <Argument type="double" name="width"/>
+        </Method>
+        <Method name="getPicture" returnType="JLabel" visibility="public">
+          <Argument type="JLabel" name="jLabel_zmienna"/>
+        </Method>
+        <Method name="LUT" returnType="BufferedImage" visibility="public" isStatic="true">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+        <Method name="compareImage" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="imLabel"/>
+          <Argument type="BufferedImage" name="imSlider"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="BrightnessEnhancer" package="imageProcessing" visibility="public" xPosition="824.0" yPosition="616.0">
+      <Fields>
+        <Field name="scale" type="float" visibility="private" isFinal="true"/>
+        <Field name="offset" type="float" visibility="private" isFinal="true"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="float" name="scale"/>
+          <Argument type="float" name="offset"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="filter" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="input"/>
+          <Argument type="BufferedImage" name="output"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+      </Methods>
+    </Class>
+    <Class name="HistogramEqualizationFilter" package="imageProcessing" visibility="public" xPosition="850.0" yPosition="382.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="histogramCompute" returnType="BufferedImage" visibility="private" isStatic="true">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+        <Method name="histogramLut" returnType="BufferedImage" visibility="private" isStatic="true">
+          <Argument type="BufferedImage" name="iInput"/>
+        </Method>
+        <Method name="filter" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="iInput"/>
+          <Argument type="BufferedImage" name="newImage"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+      </Methods>
+    </Class>
+    <Class name="Negative" package="imageProcessing" visibility="public" xPosition="596.0" yPosition="576.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="filter" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="input"/>
+          <Argument type="BufferedImage" name="output"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+      </Methods>
+    </Class>
+    <Class name="GaussianFilter" package="imageProcessing" visibility="public" xPosition="716.0" yPosition="308.0">
+      <Fields/>
+      <Constructors/>
+      <Methods>
+        <Method name="filter" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="iInput"/>
+          <Argument type="BufferedImage" name="newImage"/>
+        </Method>
+        <Method name="getBounds2D" returnType="BufferedImage" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+        </Method>
+        <Method name="createCompatibleDestImage" returnType="ColorModel" visibility="public">
+          <Argument type="BufferedImage" name="src"/>
+          <Argument type="ColorModel" name="destCM"/>
+        </Method>
+        <Method name="getPoint2D" returnType="Point2D" visibility="public">
+          <Argument type="Point2D" name="srcPt"/>
+          <Argument type="Point2D" name="dstPt"/>
+        </Method>
+        <Method name="getRenderingHints" returnType="RenderingHints" visibility="public"/>
+        <Method name="toString" returnType="String" visibility="public"/>
+      </Methods>
+    </Class>
+    <Interface name="HUMapper" package="mydicom" visibility="public" xPosition="444.0" yPosition="138.0">
+      <Methods>
+        <Method name="map" returnType="short[]" visibility="public">
+          <Argument type="int" name="rows"/>
+          <Argument type="int" name="cols"/>
+          <Argument type="short[]" name="hu"/>
+        </Method>
+      </Methods>
+    </Interface>
+    <Interface name="BufferedImageOp" package="" visibility="public" xPosition="467.0" yPosition="569.0">
+      <Methods/>
+    </Interface>
+  </ClassDiagramComponents>
+  <ClassDiagramRelations>
+    <HasRelation name="sI" source="todo.improvQualityDicom" target="todo.StretchingImage" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <UseRelation name="filters" source="gui.DicomExplorer" target="BufferedImageOp" sourceCardinality="1..*" targetCardinality="1..1"/>
+    <HasRelation name="manager" source="gui.ZoomSliderListener" target="gui.ImageManager" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <UseRelation source="todo.GammaCorrection" target="todo.Interpolation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="fileList" source="gui.DicomExplorer" target="mydicom.DicomFileContent" type="Aggregation" sourceCardinality="1..1" targetCardinality="0..*" collectionType="javax.swing.JList&lt;DicomFileContent&gt;"/>
+    <HasRelation name="listRenderer" source="gui.DicomExplorer" target="gui.IconCellRenderer" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="iManager" source="gui.DicomExplorer" target="gui.ImageManager" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="zoomer" source="gui.DicomExplorer" target="gui.ZoomSliderListener" type="Aggregation" sourceCardinality="1..1" targetCardinality="0..*" collectionType="ZoomSliderListener"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="imageProcessing.Negative" target="BufferedImageOp"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="mydicom.HU2RGBMapperBySilverstein" target="mydicom.HUMapper"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="imageProcessing.GaussianFilter" target="BufferedImageOp"/>
+    <UseRelation source="gui.DicomExplorer" target="mydicom.HUMapper" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="imageProcessing.BrightnessEnhancer" target="BufferedImageOp"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="imageProcessing.HistogramEqualizationFilter" target="BufferedImageOp"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="mydicom.HU2GrayMapper" target="mydicom.HUMapper"/>
+    <ImplementsRelation name="&lt;&lt;implements&gt;&gt;" source="mydicom.HU2RGBMapperByJstar" target="mydicom.HUMapper"/>
+    <HasRelation name="inI" source="todo.improvQualityDicom" target="todo.Interpolation" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="mF" source="todo.improvQualityDicom" target="todo.MedianaFilter" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="scaler" source="gui.ImageManager" target="gui.ScaleImage" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <UseRelation source="mydicom.DicomTools" target="mydicom.HUMapper" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <UseRelation source="mydicom.DicomFileContent" target="mydicom.DicomFileContent" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <UseRelation source="mydicom.DicomFileContent" target="mydicom.HUMapper" sourceCardinality="1..1" targetCardinality="1..1"/>
+    <HasRelation name="colorMappers" source="gui.DicomExplorer" target="mydicom.HUMapper" type="Aggregation" sourceCardinality="1..1" targetCardinality="0..*" collectionType="Map&lt;JRadioButtonMenuItem, HUMapper&gt;"/>
+    <HasRelation name="gmC" source="todo.improvQualityDicom" target="todo.GammaCorrection" type="Aggregation" sourceCardinality="1..1" targetCardinality="1..1"/>
+  </ClassDiagramRelations>
+</ClassDiagram>
