@@ -38,6 +38,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JViewport;
@@ -794,49 +795,37 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomer.stateChanged(new ChangeEvent(zoomSlider));
     }//GEN-LAST:event_zoomInitActionPerformed
 
-    private void histEqualizationItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_histEqualizationItemActionPerformed
-        if (equalizer == null) {
-            equalizer = new HistogramEqualizationFilter();
-            iManager.addFilter(equalizer);
+    private BufferedImageOp switchFilter(BufferedImageOp filter, JMenuItem filterItem, Class filterClass) {
+        // ostatni argument jest potrzebny, bo gdy filter == null  , trzeba wtedy zrobić obiekt dobrego typu
+        if (filter == null) {
+            try {
+                filter = (BufferedImageOp) filterClass.newInstance();
+            } catch (Exception e) { // should never happen
+                e.printStackTrace();
+            }
+            iManager.addFilter(filter);
             iManager.repaint(zoomer.getCurrentScale());
-            histEqualizationItem.setText("Remove Histogram Equalization");
+            filterItem.setText("Remove " + filterItem.getText());
         } else {
-            iManager.rmFilter(equalizer);
+            iManager.rmFilter(filter);
             iManager.repaint(zoomer.getCurrentScale());
-            equalizer = null;
-            histEqualizationItem.setText("Histogram Equalization");
+            filter = null;
+            filterItem.setText(filterItem.getText().replace("Remove ", ""));
         }
         updateStatus();
+        return filter;
+    }
+
+    private void histEqualizationItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_histEqualizationItemActionPerformed
+        equalizer = switchFilter(equalizer, histEqualizationItem, HistogramEqualizationFilter.class );
     }//GEN-LAST:event_histEqualizationItemActionPerformed
 
     private void gaussianFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gaussianFilterItemActionPerformed
-        if (gaussian == null) {
-            gaussian = new GaussianFilter();
-            iManager.addFilter(gaussian);
-            iManager.repaint(zoomer.getCurrentScale());
-            gaussianFilterItem.setText("Remove Gaussian Filter");
-        } else {
-            iManager.rmFilter(gaussian);
-            iManager.repaint(zoomer.getCurrentScale());
-            gaussian = null;
-            gaussianFilterItem.setText("Gaussian Filter");
-        }
-        updateStatus();
+        gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianFilter.class );
     }//GEN-LAST:event_gaussianFilterItemActionPerformed
 
     private void negativeItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_negativeItemActionPerformed
-        if (negative == null) {
-            negative = new Negative();
-            iManager.addFilter(negative);
-            iManager.repaint(zoomer.getCurrentScale());
-            negativeItem.setText("Positive");
-        } else {
-            iManager.rmFilter(negative);
-            iManager.repaint(zoomer.getCurrentScale());
-            negative = null;
-            negativeItem.setText("Negative");
-        }
-        updateStatus();
+        negative = switchFilter(negative, negativeItem, Negative.class );
     }//GEN-LAST:event_negativeItemActionPerformed
 
     private void silversteinCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_silversteinCMItemActionPerformed
@@ -862,8 +851,9 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void sortFilesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortFilesButtonActionPerformed
         ArrayList<DicomFileContent> list = new ArrayList<>();
         DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) fileList.getModel();
-        if( m.getSize() < 2 )
+        if (m.getSize() < 2) {
             return;
+        }
         for (int i = 0; i < m.getSize(); i++) {
             list.add(m.getElementAt(i));
         }
