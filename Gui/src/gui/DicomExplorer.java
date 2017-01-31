@@ -73,6 +73,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     public DicomExplorer() {
         initComponents();
+        fileList.setModel(new DefaultListModel<DicomFileContent>());
         deSerializeState();
         iManager = new ImageManager(imageHolder);
         zoomer = new ZoomSliderListener(iManager);
@@ -90,7 +91,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         labels.put(brightnessSlider.getMaximum(), new JLabel("bright"));
         brightnessSlider.setLabelTable(labels);
 
-        fileList.setModel(new DefaultListModel<DicomFileContent>());
         fileList.setCellRenderer(listRenderer);
         fileList.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -645,8 +645,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void ask4ExitConfirmation() {
-        this.serializeState();
-        if (currentImg >= 0) {
+        if (currentImg == -1) {
+            this.serializeState();
             this.dispose();
             System.exit(0);
         }
@@ -654,6 +654,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         int opt = JOptionPane.showConfirmDialog(this, "Really exit?", "Exit requested", JOptionPane.YES_NO_OPTION);
 
         if (opt == 0) {
+            this.serializeState();
             this.dispose();
             System.exit(0);
         }
@@ -662,17 +663,24 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void serializeState() {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rcPath))) {
             out.writeObject(initialPath);
+            //System.err.println(initialPath);
+            // nie działa trzeba poprawić serializację DicomFileContent, żeby nie zapisywać image
+            // out.writeObject((DefaultListModel<DicomFileContent>) fileList.getModel());
             out.close();
         } catch (IOException i) {
-            ;
+            i.printStackTrace();
         }
     }
 
     private void deSerializeState() {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(rcPath))) {
             initialPath = (String) in.readObject();
+            // nie działa DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) in.readObject();
+            // fileList.setModel(m);
+            //System.err.println(initialPath);
             in.close();
         } catch (Exception e) {
+            e.printStackTrace();
             initialPath = "";
         }
     }
@@ -829,11 +837,13 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     private void updateStatus() {
-        StringBuilder sb = new StringBuilder("HU: " + fileList.getModel().getElementAt(currentImg).getHURange() + " Applied filters: ");
-        for (BufferedImageOp f : iManager) {
-            sb.append(f.toString()).append(' ');
+        if (currentImg >= 0 && currentImg < fileList.getModel().getSize()) {
+            StringBuilder sb = new StringBuilder("HU: " + fileList.getModel().getElementAt(currentImg).getHURange() + " Applied filters: ");
+            for (BufferedImageOp f : iManager) {
+                sb.append(f.toString()).append(' ');
+            }
+            status.setText(sb.toString());
         }
-        status.setText(sb.toString());
     }
 
     /**

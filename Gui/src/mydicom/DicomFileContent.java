@@ -7,6 +7,7 @@ package mydicom;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Objects;
 
@@ -15,7 +16,9 @@ import java.util.Objects;
  *
  * @author jstar
  */
-public class DicomFileContent implements Comparable<DicomFileContent> {
+public class DicomFileContent implements Comparable<DicomFileContent>, Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private BufferedImage image;
     final private String name;
