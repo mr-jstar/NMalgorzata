@@ -65,10 +65,10 @@ public class DicomExplorer extends javax.swing.JFrame {
     private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
     private final ImageManager iManager;
-    private BrightnessEnhancer brightness;
-    private HistogramEqualizationFilter equalizer;
-    private GaussianFilter gaussian;
-    private Negative negative;
+    private BufferedImageOp brightness;
+    private BufferedImageOp equalizer;
+    private BufferedImageOp gaussian;
+    private BufferedImageOp negative;
     private final Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
 
     public DicomExplorer() {
