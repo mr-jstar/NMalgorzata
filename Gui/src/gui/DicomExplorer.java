@@ -775,8 +775,8 @@ public class DicomExplorer extends javax.swing.JFrame {
                 iManager.rmFilter(brightness);
             }
             int brightnessValue = brightnessSlider.getValue();
-            if (brightnessValue != 60) {
-                brightness = new BrightnessEnhancer(brightnessValue / 60.0f, 0.0f);
+            if (brightnessValue != NORMAL_BRIGHTNESS_SLIDER) {
+                brightness = new BrightnessEnhancer(brightnessValue / (float)NORMAL_BRIGHTNESS_SLIDER, 0.0f);
                 iManager.addFilter(brightness);
             }
             iManager.repaint(zoomer.getCurrentScale());
@@ -795,7 +795,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_switchListViewItemActionPerformed
 
     private void zoomInitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomInitActionPerformed
-        zoomSlider.setValue(100);
+        zoomSlider.setValue(NORMAL_ZOOM_SLIDER);
         zoomer.stateChanged(new ChangeEvent(zoomSlider));
     }//GEN-LAST:event_zoomInitActionPerformed
 
