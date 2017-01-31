@@ -3,11 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/gui/ZoomSliderListener.java</file>
-            <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/gui/ImageManager.java</file>
+            <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/imageProcessing/BrightnessEnhancer.java</file>
             <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/gui/DicomExplorer.java</file>
-            <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/gui/ScaleImage.java</file>
-            <file>file:/home/jstar/tmp/NMalgorzata/Gui/src/gui/ContrastEnhancer.java</file>
         </group>
     </open-files>
 </project-private>

@@ -61,7 +61,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private String initialPath = ""; // serializuje to w Uniksie/Linuksie
 
     private File file;
-    private DicomFileContent currentImg = null;
+    private int currentImg = -1;
     private final IconCellRenderer listRenderer = new IconCellRenderer();
     private ZoomSliderListener zoomer;
     private final ImageManager iManager;
@@ -95,14 +95,12 @@ public class DicomExplorer extends javax.swing.JFrame {
         fileList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent lse) {//metoda wartość zmian(argument lista wybranych wydarzeń)
-                Object o = fileList.getSelectedValue();//obiekt JList pobiera wybrane wartości
+                currentImg = fileList.getSelectedIndex();//obiekt JList pobiera wybrane wartości
 
-                if (o instanceof DicomFileContent) {
-                    DicomFileContent fc = ((DicomFileContent) o);
-                    currentImg = fc;
-                    iManager.updateImg(currentImg.getImage());
+                if (currentImg >= 0) {
+                    iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
                     iManager.repaint(zoomer.getCurrentScale());
-                    patientData.setText(currentImg.getData());
+                    patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
 
                 }
             }
@@ -582,24 +580,33 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private void openFileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser(new File(initialPath));
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "DCOM Images", "dcm");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
         chooser.setFileFilter(filter);
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             file = chooser.getSelectedFile();
             initialPath = file.getPath();
             try {
-                currentImg = DicomTools.openDicomFile(file, getActiveMapper());
-                iManager.updateImg(currentImg.getImage());
-                iManager.repaint(zoomer.getCurrentScale());
-                patientData.setText(currentImg.getData());
-                updateStatus();
-                // to do dyskusji - może dodawać go do listy?
-                ((DefaultListModel) fileList.getModel()).removeAllElements();
-                ((DefaultListModel) fileList.getModel()).addElement(currentImg);
-                fileList.setSelectedIndex(0);
+                DicomFileContent fc = DicomTools.openDicomFile(file, getActiveMapper());
+
+                int pos = -1;
+                for (int i = 0; i < fileList.getModel().getSize(); i++) {
+                    if (fc.equals(fileList.getModel().getElementAt(i))) {
+                        pos = i;
+                        break;
+                    }
+                }
+                if (pos == -1) {
+                    ((DefaultListModel) fileList.getModel()).addElement(fc);
+                    pos = fileList.getModel().getSize() - 1;
+                }
+                currentImg = pos;
+                fileList.setSelectedIndex(currentImg);
                 fileList.repaint();
+                iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
+                iManager.repaint(zoomer.getCurrentScale());
+                patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
+                updateStatus();
                 System.out.println("nazwa wybranego pliku" + file.getName());
             } catch (Exception ex) {
                 Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
@@ -611,7 +618,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileFilter(new FileNameExtensionFilter(".png", "png"));
         int result = chooser.showSaveDialog(null);
-        if (currentImg != null) {//sprawdza czy cos jest w 
+        if (currentImg >= 0) {//sprawdza czy cos jest w 
             //System.out.println("jest obraz");
             if (result == JFileChooser.APPROVE_OPTION) {
                 ImageIcon icon = (ImageIcon) imageHolder.getIcon();
@@ -639,7 +646,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private void ask4ExitConfirmation() {
         this.serializeState();
-        if (currentImg == null) {
+        if (currentImg >= 0) {
             this.dispose();
             System.exit(0);
         }
@@ -695,18 +702,18 @@ public class DicomExplorer extends javax.swing.JFrame {
                     Logger.getLogger(DicomExplorer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            currentImg = fileList.getModel().getElementAt(0);
+            currentImg = 0;
             fileList.setSelectedIndex(0);
             fileList.repaint();
-            iManager.updateImg(currentImg.getImage());
+            iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
             iManager.repaint(zoomer.getCurrentScale());
-            patientData.setText(currentImg.getData());
+            patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
             updateStatus();
         }
     }//GEN-LAST:event_openDirMenuItemActionPerformed
 
     private void brightnessSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_brightnessSliderStateChanged
-        if (currentImg != null) {
+        if (currentImg >= 0) {
             if (brightness != null) {
                 iManager.rmFilter(brightness);
             }
@@ -807,7 +814,7 @@ public class DicomExplorer extends javax.swing.JFrame {
             fileList.getModel().getElementAt(i).updateImage(colorMappers.get(src));
         }
         fileList.repaint();
-        iManager.updateImg(currentImg.getImage());
+        iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
         iManager.repaint(zoomer.getCurrentScale());
         updateStatus();
     }
@@ -822,7 +829,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     private void updateStatus() {
-        StringBuilder sb = new StringBuilder("HU: " + currentImg.getHURange() + " Applied filters: ");
+        StringBuilder sb = new StringBuilder("HU: " + fileList.getModel().getElementAt(currentImg).getHURange() + " Applied filters: ");
         for (BufferedImageOp f : iManager) {
             sb.append(f.toString()).append(' ');
         }
