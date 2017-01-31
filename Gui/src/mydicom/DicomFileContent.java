@@ -6,8 +6,11 @@
 package mydicom;
 
 import java.awt.image.BufferedImage;
+import java.io.Externalizable;
 import java.io.File;
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.AbstractMap;
 import java.util.Objects;
 
@@ -16,16 +19,20 @@ import java.util.Objects;
  *
  * @author jstar
  */
-public class DicomFileContent implements Comparable<DicomFileContent>, Serializable {
-    
+public class DicomFileContent implements Comparable<DicomFileContent>, Externalizable {
+
     private static final long serialVersionUID = 1L;
 
     private BufferedImage image;
-    final private String name;
-    final private String fileData;
-    final private double sliceLocation;
+    private String name;
+    private String fileData;
+    private double sliceLocation;
     private short[] hu;
-    private short hmin = 5000, hmax= -5000;
+    private short hmin = 5000, hmax = -5000;
+    
+    public DicomFileContent(ObjectInput in) throws IOException, ClassNotFoundException { 
+        readExternal(in);
+    }
 
     public DicomFileContent(File file, double location, short[] hu, BufferedImage img)
             throws Exception {
@@ -34,6 +41,10 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Serializa
         this.image = img;
         fileData = DicomTools.dataInf(file);
         this.hu = hu;
+        calcHUminAndmax();
+    }
+
+    private void calcHUminAndmax() {
         for (short l : hu) {
             if (l < hmin) {
                 hmin = l;
@@ -43,9 +54,35 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Serializa
             }
         }
     }
-    
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(name);
+        out.writeObject(fileData);
+        out.writeObject(sliceLocation);
+        out.writeObject(hu);
+        out.writeObject(image.getWidth());
+        out.writeObject(image.getHeight());
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        name = (String) in.readObject();
+        fileData = (String) in.readObject();
+        sliceLocation = (Double) in.readObject();
+        hu = (short[]) in.readObject();
+        int width = (int) in.readObject();
+        int height = (int) in.readObject();
+        image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        calcHUminAndmax();
+    }
+
     public void updateImage(HUMapper mapper) {
-        image = mapper.map(image.getWidth(), image.getHeight(), hu);
+        if( image != null ) {
+            image = mapper.map(image.getWidth(), image.getHeight(), hu);
+        } else {
+            throw new NullPointerException("DicomFileContent::updateImage: image is null, but can not be!");
+        }
     }
 
     /**
@@ -121,4 +158,5 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Serializa
             return 0;
         }
     }
+
 }

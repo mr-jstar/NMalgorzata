@@ -5,7 +5,6 @@
  */
 package mydicom;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -36,7 +35,6 @@ public class DicomTools {
         String physicianOfRecord = "";
         String patientName = "";
         String bodyPartExamined = "";
-        String sumInf = "";
         String slicePosition = "unknown";
         DicomFile ldcm = new DicomFile(file);
         ldcm.open();
@@ -94,7 +92,7 @@ public class DicomTools {
                 slicePosition = "Slice Location: " + lElement.getSingleStringValue("unknown");
             }
         }
-        sumInf = "<html>"
+        return "<html>"
                 + fileName + "<br>"
                 + datee + "<br>"
                 + modality + "<br>"
@@ -106,7 +104,6 @@ public class DicomTools {
                 + bodyPartExamined + "<br>"
                 + slicePosition + "<br>"
                 + "</html";
-        return sumInf;
     }
 
     // Pobiera pliki z obrazami z katalogu i pakuje je do ListModel
