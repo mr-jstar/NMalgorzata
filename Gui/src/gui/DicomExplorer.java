@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -73,8 +75,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     public DicomExplorer() {
         initComponents();
-        fileList.setModel(new DefaultListModel<DicomFileContent>());
-        deSerializeState();
+
         iManager = new ImageManager(imageHolder);
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
@@ -200,6 +201,9 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
         });
 
+        fileList.setModel(new DefaultListModel<DicomFileContent>());
+        deSerializeState();
+
     }
 
     /**
@@ -216,8 +220,11 @@ public class DicomExplorer extends javax.swing.JFrame {
         fileListScroll = new javax.swing.JScrollPane();
         fileList = new javax.swing.JList<>();
         patientData = new javax.swing.JLabel();
-        filesTitle = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        filesTitle = new javax.swing.JLabel();
+        sortFilesButton = new javax.swing.JButton();
+        clearFilesButton = new javax.swing.JButton();
         mainPanel = new javax.swing.JPanel();
         controlPanel = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -289,10 +296,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         patientData.setPreferredSize(new java.awt.Dimension(180, 300));
         filePanel.add(patientData, java.awt.BorderLayout.SOUTH);
 
-        filesTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        filesTitle.setText("Files");
-        filePanel.add(filesTitle, java.awt.BorderLayout.PAGE_START);
-
         jPanel1.setMaximumSize(new java.awt.Dimension(20, 32767));
         jPanel1.setMinimumSize(new java.awt.Dimension(20, 0));
         jPanel1.setPreferredSize(new java.awt.Dimension(20, 564));
@@ -305,10 +308,44 @@ public class DicomExplorer extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 531, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
         filePanel.add(jPanel1, java.awt.BorderLayout.WEST);
+
+        jPanel3.setMaximumSize(new java.awt.Dimension(200, 29));
+        jPanel3.setMinimumSize(new java.awt.Dimension(100, 29));
+        jPanel3.setPreferredSize(new java.awt.Dimension(180, 29));
+
+        filesTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        filesTitle.setText("Files");
+        jPanel3.add(filesTitle);
+
+        sortFilesButton.setFont(new java.awt.Font("Ubuntu", 0, 12)); // NOI18N
+        sortFilesButton.setText("sort");
+        sortFilesButton.setMaximumSize(new java.awt.Dimension(60, 20));
+        sortFilesButton.setMinimumSize(new java.awt.Dimension(60, 20));
+        sortFilesButton.setPreferredSize(new java.awt.Dimension(60, 20));
+        sortFilesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sortFilesButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(sortFilesButton);
+
+        clearFilesButton.setFont(new java.awt.Font("Ubuntu", 0, 12)); // NOI18N
+        clearFilesButton.setText("clear");
+        clearFilesButton.setMaximumSize(new java.awt.Dimension(60, 20));
+        clearFilesButton.setMinimumSize(new java.awt.Dimension(60, 20));
+        clearFilesButton.setPreferredSize(new java.awt.Dimension(60, 20));
+        clearFilesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearFilesButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(clearFilesButton);
+
+        filePanel.add(jPanel3, java.awt.BorderLayout.NORTH);
 
         getContentPane().add(filePanel, java.awt.BorderLayout.WEST);
 
@@ -663,9 +700,11 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void serializeState() {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rcPath))) {
             out.writeObject(initialPath);
-            //System.err.println(initialPath);
-            // nie działa trzeba poprawić serializację DicomFileContent, żeby nie zapisywać image
-            // out.writeObject((DefaultListModel<DicomFileContent>) fileList.getModel());
+            DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) fileList.getModel();
+            out.writeObject(m.getSize());
+            for (int i = 0; i < m.getSize(); i++) {
+                m.elementAt(i).writeExternal(out);
+            }
             out.close();
         } catch (IOException i) {
             i.printStackTrace();
@@ -675,9 +714,15 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void deSerializeState() {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(rcPath))) {
             initialPath = (String) in.readObject();
-            // nie działa DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) in.readObject();
-            // fileList.setModel(m);
-            //System.err.println(initialPath);
+            int n = (Integer) in.readObject();
+            HUMapper mpr = getActiveMapper();
+            DefaultListModel<DicomFileContent> model = new DefaultListModel<>();
+            for (int i = 0; i < n; i++) {
+                DicomFileContent c = new DicomFileContent(in);
+                c.updateImage(mpr);
+                model.addElement(c);
+            }
+            fileList.setModel(model);
             in.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -690,7 +735,6 @@ public class DicomExplorer extends javax.swing.JFrame {
         JFileChooser chooser = new JFileChooser(new File(initialPath));
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.setMultiSelectionEnabled(true);
-        // not used ? FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File[] list = chooser.getSelectedFiles();
@@ -811,6 +855,28 @@ public class DicomExplorer extends javax.swing.JFrame {
         ask4ExitConfirmation();
     }//GEN-LAST:event_formWindowClosing
 
+    private void clearFilesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearFilesButtonActionPerformed
+        ((DefaultListModel<DicomFileContent>) fileList.getModel()).removeAllElements();
+    }//GEN-LAST:event_clearFilesButtonActionPerformed
+
+    private void sortFilesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortFilesButtonActionPerformed
+        ArrayList<DicomFileContent> list = new ArrayList<>();
+        DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) fileList.getModel();
+        if( m.getSize() < 2 )
+            return;
+        for (int i = 0; i < m.getSize(); i++) {
+            list.add(m.getElementAt(i));
+        }
+        Collections.sort(list);
+        m.removeAllElements();
+        for (DicomFileContent c : list) {
+            m.addElement(c);
+        }
+        currentImg = 0;
+        fileList.setSelectedIndex(0);
+        fileList.repaint();
+    }//GEN-LAST:event_sortFilesButtonActionPerformed
+
     private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
         for (JRadioButtonMenuItem i : colorMappers.keySet()) {
             i.setSelected(false);
@@ -833,7 +899,7 @@ public class DicomExplorer extends javax.swing.JFrame {
                 return colorMappers.get(b);
             }
         }
-        return null; // should never happen
+        throw new NullPointerException("DicomExplorer::getActiveMapper : any mapper must be selected!"); // should never happen
     }
 
     private void updateStatus() {
@@ -885,6 +951,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSlider brightnessSlider;
+    private javax.swing.JButton clearFilesButton;
     private javax.swing.JPanel contrastPanel;
     private javax.swing.JPanel controlPanel;
     private javax.swing.JMenuItem exitMenuItem;
@@ -907,6 +974,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JRadioButtonMenuItem jstarCMItem;
     private javax.swing.JPanel leftPanel;
@@ -921,6 +989,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator separator1;
     private javax.swing.JPopupMenu.Separator separator2;
     private javax.swing.JRadioButtonMenuItem silversteinCMItem;
+    private javax.swing.JButton sortFilesButton;
     private javax.swing.JLabel status;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JMenuItem switchListViewItem;
