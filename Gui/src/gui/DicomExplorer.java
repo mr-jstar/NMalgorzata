@@ -59,6 +59,9 @@ import org.apache.commons.io.FilenameUtils;
  * @author Małgorzata
  */
 public class DicomExplorer extends javax.swing.JFrame {
+    
+    private final int NORMAL_BRIGHTNESS_SLIDER = 60;
+    private final int NORMAL_ZOOM_SLIDER = 100;
 
     private final String rcPath = System.getProperty("user.home") + File.separator + ".dicomexplorerrc";
     private String initialPath = ""; // serializuje to w Uniksie/Linuksie
@@ -81,15 +84,15 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
         Hashtable labels = new Hashtable();
-        labels.put(20, new JLabel("1:5"));
-        labels.put(100, new JLabel("1:1"));
-        labels.put(300, new JLabel("3:1"));
-        labels.put(500, new JLabel("5:1"));
+        labels.put(NORMAL_ZOOM_SLIDER/5, new JLabel("1:5"));
+        labels.put(NORMAL_ZOOM_SLIDER, new JLabel("1:1"));
+        labels.put(NORMAL_ZOOM_SLIDER*3, new JLabel("3:1"));
+        labels.put(NORMAL_ZOOM_SLIDER*5, new JLabel("5:1"));
         zoomSlider.setLabelTable(labels);
 
         labels = new Hashtable();
-        labels.put(20, new JLabel("dark"));
-        labels.put(60, new JLabel("normal"));
+        labels.put(brightnessSlider.getMinimum(), new JLabel("dark"));
+        labels.put(NORMAL_BRIGHTNESS_SLIDER, new JLabel("normal"));
         labels.put(brightnessSlider.getMaximum(), new JLabel("bright"));
         brightnessSlider.setLabelTable(labels);
 
@@ -371,14 +374,14 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         zoomSlider.setFont(new java.awt.Font("Ubuntu", 0, 15)); // NOI18N
         zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
-        zoomSlider.setMaximum(500);
-        zoomSlider.setMinimum(20);
-        zoomSlider.setMinorTickSpacing(20);
+        zoomSlider.setMaximum(5*NORMAL_ZOOM_SLIDER);
+        zoomSlider.setMinimum(NORMAL_ZOOM_SLIDER/5);
+        zoomSlider.setMinorTickSpacing(NORMAL_ZOOM_SLIDER/5);
         zoomSlider.setPaintLabels(true);
         zoomSlider.setPaintTicks(true);
         zoomSlider.setPaintTrack(false);
         zoomSlider.setToolTipText("");
-        zoomSlider.setValue(100);
+        zoomSlider.setValue(NORMAL_ZOOM_SLIDER);
         zoomPanel.add(zoomSlider, java.awt.BorderLayout.CENTER);
 
         zoomInit.setText("1:1");
@@ -400,12 +403,13 @@ public class DicomExplorer extends javax.swing.JFrame {
         contrastPanel.add(jLabel2, java.awt.BorderLayout.WEST);
 
         brightnessSlider.setForeground(new java.awt.Color(0, 0, 0));
-        brightnessSlider.setMinimum(20);
-        brightnessSlider.setMinorTickSpacing(20);
+        brightnessSlider.setMaximum(5*NORMAL_BRIGHTNESS_SLIDER/3);
+        brightnessSlider.setMinimum(NORMAL_BRIGHTNESS_SLIDER/3);
+        brightnessSlider.setMinorTickSpacing(NORMAL_BRIGHTNESS_SLIDER/3);
         brightnessSlider.setPaintLabels(true);
         brightnessSlider.setPaintTicks(true);
         brightnessSlider.setToolTipText("");
-        brightnessSlider.setValue(60);
+        brightnessSlider.setValue(NORMAL_BRIGHTNESS_SLIDER);
         brightnessSlider.setAutoscrolls(true);
         brightnessSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -797,6 +801,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private BufferedImageOp switchFilter(BufferedImageOp filter, JMenuItem filterItem, Class filterClass) {
         // ostatni argument jest potrzebny, bo gdy filter == null  , trzeba wtedy zrobić obiekt dobrego typu
+        final String disableStr = "Disable ";
         if (filter == null) {
             try {
                 filter = (BufferedImageOp) filterClass.newInstance();
@@ -805,12 +810,12 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
             iManager.addFilter(filter);
             iManager.repaint(zoomer.getCurrentScale());
-            filterItem.setText("Remove " + filterItem.getText());
+            filterItem.setText(disableStr + filterItem.getText());
         } else {
             iManager.rmFilter(filter);
             iManager.repaint(zoomer.getCurrentScale());
             filter = null;
-            filterItem.setText(filterItem.getText().replace("Remove ", ""));
+            filterItem.setText(filterItem.getText().replace(disableStr, ""));
         }
         updateStatus();
         return filter;
