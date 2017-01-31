@@ -85,14 +85,14 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomSlider.addChangeListener(zoomer);
         Hashtable labels = new Hashtable();
         labels.put(NORMAL_ZOOM_SLIDER/5, new JLabel("1:5"));
-        labels.put(NORMAL_ZOOM_SLIDER, new JLabel("1:1"));
+        labels.put(NORMAL_ZOOM_SLIDER,   new JLabel("1:1"));
         labels.put(NORMAL_ZOOM_SLIDER*3, new JLabel("3:1"));
         labels.put(NORMAL_ZOOM_SLIDER*5, new JLabel("5:1"));
         zoomSlider.setLabelTable(labels);
 
         labels = new Hashtable();
         labels.put(brightnessSlider.getMinimum(), new JLabel("dark"));
-        labels.put(NORMAL_BRIGHTNESS_SLIDER, new JLabel("normal"));
+        labels.put(NORMAL_BRIGHTNESS_SLIDER,      new JLabel("normal"));
         labels.put(brightnessSlider.getMaximum(), new JLabel("bright"));
         brightnessSlider.setLabelTable(labels);
 
@@ -162,7 +162,7 @@ public class DicomExplorer extends javax.swing.JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 char keyChar = e.getKeyChar();
-                System.err.println("key typed " + e.getKeyChar() + "->" + e.getKeyCode());
+                //System.err.println("key typed " + e.getKeyChar() + "->" + e.getKeyCode());
                 if (keyChar == '+') {
                     zoomSlider.setValue(zoomSlider.getValue() + zoomSlider.getMaximum() / 10);
                     zoomer.stateChanged(new ChangeEvent(zoomSlider));
@@ -219,7 +219,6 @@ public class DicomExplorer extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jFileChooser1 = new javax.swing.JFileChooser();
         filePanel = new javax.swing.JPanel();
         fileListScroll = new javax.swing.JScrollPane();
         fileList = new javax.swing.JList<>();
@@ -961,7 +960,6 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem histEqualizationItem;
     private javax.swing.JLabel imageHolder;
     private javax.swing.JScrollPane imgScroll;
-    private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
