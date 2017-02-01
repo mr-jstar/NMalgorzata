@@ -60,7 +60,7 @@ public class ImageManager implements Iterable<BufferedImageOp> {
         try {
             BufferedImage sc = scaler.makeImage(img, scale, scale);
             for (BufferedImageOp f : filters) {
-                f.filter(sc, sc);
+                sc = f.filter(sc, null);
             }
             imagePanel.setIcon(new ImageIcon(sc));
         } catch (Exception ex) {
