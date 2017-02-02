@@ -1,19 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package imageProcessing;
 
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ColorModel;
 
-class RGBLaplace implements BufferedImageOp {
+class RGBLaplace extends AbstractBufferedImageOp {
 
     /**
      * A convenience method for getting ARGB pixels from an image. This tries to
@@ -91,7 +80,7 @@ class RGBLaplace implements BufferedImageOp {
                 row3 = getRGB(src, 0, y + 1, width, 1, row3);
                 brightness(row3);
             }
-            pixels[0] = pixels[width - 1] = 0xff000000;//FIXME
+            pixels[0] = pixels[width - 1] = 0xff000000;
             for (int x = 1; x < width - 1; x++) {
                 int l1 = row2[x - 1];
                 int l2 = row1[x];
@@ -123,7 +112,7 @@ class RGBLaplace implements BufferedImageOp {
             if (y < height - 1) {
                 row3 = getRGB(dst, 0, y + 1, width, 1, row3);
             }
-            pixels[0] = pixels[width - 1] = 0xff000000;//FIXME
+            pixels[0] = pixels[width - 1] = 0xff000000;
             for (int x = 1; x < width - 1; x++) {
                 int r = row2[x];
                 r = (((r <= 128)
@@ -147,30 +136,6 @@ class RGBLaplace implements BufferedImageOp {
         }
 
         return dst;
-    }
-
-    @Override
-    public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
-    }
-
-    @Override
-    public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (destCM == null) {
-            destCM = src.getColorModel();
-        }
-        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
-    }
-
-    @Override
-    public Point2D getPoint2D(Point2D srcPt, Point2D dstPt) {
-        dstPt.setLocation(srcPt);
-        return dstPt;
-    }
-
-    @Override
-    public RenderingHints getRenderingHints() {
-        return null;
     }
 
     @Override

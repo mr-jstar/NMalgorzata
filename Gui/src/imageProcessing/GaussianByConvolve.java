@@ -5,14 +5,8 @@
  */
 package imageProcessing;
 
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.ColorConvertOp;
-import java.awt.image.ColorModel;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 
@@ -20,7 +14,7 @@ import java.awt.image.Kernel;
  *
  * @author jstar
  */
-public class GaussianByConvolve implements BufferedImageOp {
+public class GaussianByConvolve extends AbstractBufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
@@ -29,30 +23,6 @@ public class GaussianByConvolve implements BufferedImageOp {
         BufferedImageOp operator = new ConvolveOp(k);
         output = operator.filter(input, null);
         return output;
-    }
-
-    @Override
-    public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
-    }
-
-    @Override
-    public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (destCM == null) {
-            destCM = src.getColorModel();
-        }
-        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
-    }
-
-    @Override
-    public Point2D getPoint2D(Point2D srcPt, Point2D dstPt) {
-        dstPt.setLocation(srcPt);
-        return dstPt;
-    }
-
-    @Override
-    public RenderingHints getRenderingHints() {
-        return null;
     }
 
     @Override

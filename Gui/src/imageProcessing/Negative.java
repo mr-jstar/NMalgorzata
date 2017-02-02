@@ -5,13 +5,8 @@
  */
 package imageProcessing;
 
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.ColorModel;
 import java.awt.image.LookupOp;
 import java.awt.image.LookupTable;
 import java.awt.image.RescaleOp;
@@ -20,7 +15,7 @@ import java.awt.image.RescaleOp;
  *
  * @author jstar
  */
-public class Negative implements BufferedImageOp {
+public class Negative extends AbstractBufferedImageOp {
 
     @Override
 
@@ -31,7 +26,7 @@ public class Negative implements BufferedImageOp {
                 operator = new RescaleOp(-1f, (float) (1 << 16 - 1), null);
                 break;
             default:
-                input = BufferedImageTools.convertToARGB(input);
+                input = convertToARGB(input);
             case BufferedImage.TYPE_INT_ARGB:
                 LookupTable lookup = new LookupTable(0, 4) {
                     @Override
@@ -42,35 +37,11 @@ public class Negative implements BufferedImageOp {
                         return dest;
                     }
                 };
-                operator = new LookupOp(lookup, new RenderingHints(null));
+                operator = new LookupOp(lookup, null);
                 break;
         }
 
         return operator.filter(input, output);
-    }
-
-    @Override
-    public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
-    }
-
-    @Override
-    public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (destCM == null) {
-            destCM = src.getColorModel();
-        }
-        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
-    }
-
-    @Override
-    public Point2D getPoint2D(Point2D srcPt, Point2D dstPt) {
-        dstPt.setLocation(srcPt);
-        return dstPt;
-    }
-
-    @Override
-    public RenderingHints getRenderingHints() {
-        return null;
     }
 
     @Override

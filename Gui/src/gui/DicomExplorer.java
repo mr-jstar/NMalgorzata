@@ -6,7 +6,7 @@
 package gui;
 
 import imageProcessing.Sharpener;
-import imageProcessing.BrightnessEnhancer;
+import imageProcessing.ContrastFilter;
 import imageProcessing.GaussianByConvolve;
 import imageProcessing.HistogramEqualizationFilter;
 import imageProcessing.Laplace;
@@ -60,9 +60,10 @@ import org.apache.commons.io.FilenameUtils;
  * @author Małgorzata
  */
 public class DicomExplorer extends javax.swing.JFrame {
-    
-    private final int NORMAL_BRIGHTNESS_SLIDER = 60;
-    private final int NORMAL_ZOOM_SLIDER = 100;
+
+    private final int NORMAL_4_BRIGHTNESS_SLIDER = 100;
+    private final int NORMAL_4_CONTRAST_SLIDER = 100;
+    private final int NORMAL_4_ZOOM_SLIDER = 100;
 
     private final String rcPath = System.getProperty("user.home") + File.separator + ".dicomexplorerrc";
     private String initialPath = ""; // serializuje to w Uniksie/Linuksie
@@ -87,17 +88,20 @@ public class DicomExplorer extends javax.swing.JFrame {
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
         Hashtable labels = new Hashtable();
-        labels.put(NORMAL_ZOOM_SLIDER/5, new JLabel("1:5"));
-        labels.put(NORMAL_ZOOM_SLIDER,   new JLabel("1:1"));
-        labels.put(NORMAL_ZOOM_SLIDER*3, new JLabel("3:1"));
-        labels.put(NORMAL_ZOOM_SLIDER*5, new JLabel("5:1"));
+        labels.put(NORMAL_4_ZOOM_SLIDER / 5, new JLabel("1:5"));
+        labels.put(NORMAL_4_ZOOM_SLIDER, new JLabel("1:1"));
+        labels.put(NORMAL_4_ZOOM_SLIDER * 3, new JLabel("3:1"));
+        labels.put(NORMAL_4_ZOOM_SLIDER * 5, new JLabel("5:1"));
         zoomSlider.setLabelTable(labels);
 
         labels = new Hashtable();
-        labels.put(brightnessSlider.getMinimum(), new JLabel("dark"));
-        labels.put(NORMAL_BRIGHTNESS_SLIDER,      new JLabel("normal"));
-        labels.put(brightnessSlider.getMaximum(), new JLabel("bright"));
+        labels.put(brightnessSlider.getMinimum(), new JLabel("-"));
+        labels.put(brightnessSlider.getMaximum(), new JLabel("+"));
         brightnessSlider.setLabelTable(labels);
+        labels = new Hashtable();
+        labels.put(contrastSlider.getMinimum(), new JLabel("-"));
+        labels.put(contrastSlider.getMaximum(), new JLabel("+"));
+        contrastSlider.setLabelTable(labels);
 
         fileList.setCellRenderer(listRenderer);
         fileList.addListSelectionListener(new ListSelectionListener() {
@@ -243,6 +247,8 @@ public class DicomExplorer extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         brightnessSlider = new javax.swing.JSlider(new DefaultBoundedRangeModel(100, 0,100,150));
         jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        contrastSlider = new javax.swing.JSlider();
         imgScroll = new javax.swing.JScrollPane();
         imageHolder = new javax.swing.JLabel();
         statusPanel = new javax.swing.JPanel();
@@ -378,14 +384,14 @@ public class DicomExplorer extends javax.swing.JFrame {
 
         zoomSlider.setFont(new java.awt.Font("Ubuntu", 0, 15)); // NOI18N
         zoomSlider.setForeground(new java.awt.Color(0, 0, 0));
-        zoomSlider.setMaximum(5*NORMAL_ZOOM_SLIDER);
-        zoomSlider.setMinimum(NORMAL_ZOOM_SLIDER/5);
-        zoomSlider.setMinorTickSpacing(NORMAL_ZOOM_SLIDER/5);
+        zoomSlider.setMaximum(5*NORMAL_4_ZOOM_SLIDER);
+        zoomSlider.setMinimum(NORMAL_4_ZOOM_SLIDER/5);
+        zoomSlider.setMinorTickSpacing(NORMAL_4_ZOOM_SLIDER/5);
         zoomSlider.setPaintLabels(true);
         zoomSlider.setPaintTicks(true);
         zoomSlider.setPaintTrack(false);
         zoomSlider.setToolTipText("");
-        zoomSlider.setValue(NORMAL_ZOOM_SLIDER);
+        zoomSlider.setValue(NORMAL_4_ZOOM_SLIDER);
         zoomPanel.add(zoomSlider, java.awt.BorderLayout.CENTER);
 
         zoomInit.setText("1:1");
@@ -401,31 +407,51 @@ public class DicomExplorer extends javax.swing.JFrame {
         jLabel3.setText("          ");
         controlPanel.add(jLabel3);
 
-        contrastPanel.setLayout(new java.awt.BorderLayout());
-
         jLabel2.setText("Brightness: ");
-        contrastPanel.add(jLabel2, java.awt.BorderLayout.WEST);
+        contrastPanel.add(jLabel2);
 
         brightnessSlider.setForeground(new java.awt.Color(0, 0, 0));
-        brightnessSlider.setMaximum(5*NORMAL_BRIGHTNESS_SLIDER/3);
-        brightnessSlider.setMinimum(NORMAL_BRIGHTNESS_SLIDER/3);
-        brightnessSlider.setMinorTickSpacing(NORMAL_BRIGHTNESS_SLIDER/3);
+        brightnessSlider.setMaximum(NORMAL_4_BRIGHTNESS_SLIDER);
+        brightnessSlider.setMinimum(0);
         brightnessSlider.setPaintLabels(true);
         brightnessSlider.setPaintTicks(true);
         brightnessSlider.setToolTipText("");
-        brightnessSlider.setValue(NORMAL_BRIGHTNESS_SLIDER);
+        brightnessSlider.setValue(NORMAL_4_BRIGHTNESS_SLIDER);
         brightnessSlider.setAutoscrolls(true);
+        brightnessSlider.setMaximumSize(new java.awt.Dimension(100, 62));
+        brightnessSlider.setMinimumSize(new java.awt.Dimension(50, 62));
+        brightnessSlider.setPreferredSize(new java.awt.Dimension(100, 62));
         brightnessSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 brightnessSliderStateChanged(evt);
             }
         });
-        contrastPanel.add(brightnessSlider, java.awt.BorderLayout.EAST);
+        contrastPanel.add(brightnessSlider);
 
         controlPanel.add(contrastPanel);
 
         jLabel4.setText("          ");
         controlPanel.add(jLabel4);
+
+        jLabel6.setText("Contrast");
+        controlPanel.add(jLabel6);
+
+        contrastSlider.setForeground(new java.awt.Color(0, 0, 0));
+        contrastSlider.setMaximum(NORMAL_4_CONTRAST_SLIDER);
+        contrastSlider.setMinimum(0);
+        contrastSlider.setPaintLabels(true);
+        contrastSlider.setPaintTicks(true);
+        contrastSlider.setValue(NORMAL_4_CONTRAST_SLIDER);
+        contrastSlider.setAutoscrolls(true);
+        contrastSlider.setMaximumSize(new java.awt.Dimension(100, 62));
+        contrastSlider.setMinimumSize(new java.awt.Dimension(50, 62));
+        contrastSlider.setPreferredSize(new java.awt.Dimension(100, 62));
+        contrastSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                contrastSliderStateChanged(evt);
+            }
+        });
+        controlPanel.add(contrastSlider);
 
         mainPanel.add(controlPanel, java.awt.BorderLayout.NORTH);
 
@@ -617,7 +643,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         });
         viewMenu.add(silversteinCMItem);
 
-        jstarCMItem.setText("jstar Color Map");
+        jstarCMItem.setText("Custom Color Map");
         jstarCMItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jstarCMItemActionPerformed(evt);
@@ -795,8 +821,13 @@ public class DicomExplorer extends javax.swing.JFrame {
                 iManager.rmFilter(brightness);
             }
             int brightnessValue = brightnessSlider.getValue();
-            if (brightnessValue != NORMAL_BRIGHTNESS_SLIDER) {
-                brightness = new BrightnessEnhancer(brightnessValue / (float)NORMAL_BRIGHTNESS_SLIDER, 0.0f);
+            int contrastValue = contrastSlider.getValue();
+            if (brightnessValue != NORMAL_4_BRIGHTNESS_SLIDER || contrastValue != NORMAL_4_CONTRAST_SLIDER) {
+                float b = (float) (brightnessValue / (float) brightnessSlider.getMaximum());
+                float c = (float) (contrastValue / (float) contrastSlider.getMaximum());
+                //System.out.println("b=" + (brightnessValue / (float) brightnessSlider.getMaximum()));
+                // legacy brightness = new BrightnessEnhancer(brightnessValue / (float)NORMAL_4_BRIGHTNESS_AND_CONTRAST_SLIDER, 0.0f);
+                brightness = new ContrastFilter(b, c);
                 iManager.addFilter(brightness);
             }
             iManager.repaint(zoomer.getCurrentScale());
@@ -815,7 +846,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_switchListViewItemActionPerformed
 
     private void zoomInitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomInitActionPerformed
-        zoomSlider.setValue(NORMAL_ZOOM_SLIDER);
+        zoomSlider.setValue(NORMAL_4_ZOOM_SLIDER);
         zoomer.stateChanged(new ChangeEvent(zoomSlider));
     }//GEN-LAST:event_zoomInitActionPerformed
 
@@ -842,16 +873,16 @@ public class DicomExplorer extends javax.swing.JFrame {
     }
 
     private void histEqualizationItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_histEqualizationItemActionPerformed
-        equalizer = switchFilter(equalizer, histEqualizationItem, HistogramEqualizationFilter.class );
+        equalizer = switchFilter(equalizer, histEqualizationItem, HistogramEqualizationFilter.class);
     }//GEN-LAST:event_histEqualizationItemActionPerformed
 
     private void gaussianFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gaussianFilterItemActionPerformed
         //gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianFilter.class );
-        gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianByConvolve.class );
+        gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianByConvolve.class);
     }//GEN-LAST:event_gaussianFilterItemActionPerformed
 
     private void negativeItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_negativeItemActionPerformed
-        negative = switchFilter(negative, negativeItem, Negative.class );
+        negative = switchFilter(negative, negativeItem, Negative.class);
     }//GEN-LAST:event_negativeItemActionPerformed
 
     private void silversteinCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_silversteinCMItemActionPerformed
@@ -879,11 +910,11 @@ public class DicomExplorer extends javax.swing.JFrame {
         if (m.getSize() < 2) {
             return;
         }
-        Object [] list = m.toArray();
+        Object[] list = m.toArray();
         Arrays.sort(list);
         m.removeAllElements();
-        for ( Object c : list) {
-            m.addElement((DicomFileContent)c);
+        for (Object c : list) {
+            m.addElement((DicomFileContent) c);
         }
         currentImg = 0;
         fileList.setSelectedIndex(0);
@@ -898,6 +929,10 @@ public class DicomExplorer extends javax.swing.JFrame {
         laplace = switchFilter(laplace, laplaceMenuItem, Laplace.class);
     }//GEN-LAST:event_laplaceMenuItemActionPerformed
 
+    private void contrastSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_contrastSliderStateChanged
+        brightnessSliderStateChanged(evt);
+    }//GEN-LAST:event_contrastSliderStateChanged
+
     private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
         for (JRadioButtonMenuItem i : colorMappers.keySet()) {
             i.setSelected(false);
@@ -909,8 +944,9 @@ public class DicomExplorer extends javax.swing.JFrame {
             fileList.getModel().getElementAt(i).updateImage(colorMappers.get(src));
         }
         fileList.repaint();
-        if( currentImg != -1 )
+        if (currentImg != -1) {
             iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
+        }
         iManager.repaint(zoomer.getCurrentScale());
         updateStatus();
     }
@@ -975,6 +1011,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JSlider brightnessSlider;
     private javax.swing.JButton clearFilesButton;
     private javax.swing.JPanel contrastPanel;
+    private javax.swing.JSlider contrastSlider;
     private javax.swing.JPanel controlPanel;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JList<DicomFileContent> fileList;
@@ -993,6 +1030,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
