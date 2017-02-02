@@ -5,7 +5,6 @@
  */
 package imageProcessing;
 
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
@@ -14,43 +13,25 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
-import java.awt.image.LookupOp;
-import java.awt.image.LookupTable;
-import java.awt.image.RescaleOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 
 /**
  *
  * @author jstar
  */
-public class Negative implements BufferedImageOp {
+public class Laplace implements BufferedImageOp {
 
     @Override
-
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        BufferedImageOp operator = null;
-        switch (input.getType()) {
-            case BufferedImage.TYPE_USHORT_GRAY:
-                operator = new RescaleOp(-1f, (float) (1 << 16 - 1), null);
-                break;
-            default:
-                input = BufferedImageTools.convertToARGB(input);
-            case BufferedImage.TYPE_INT_ARGB:
-                LookupTable lookup = new LookupTable(0, 4) {
-                    @Override
-                    public int[] lookupPixel(int[] src, int[] dest) {
-                        dest[0] = (int) (255 - src[0]);
-                        dest[1] = (int) (255 - src[1]);
-                        dest[2] = (int) (255 - src[2]);
-                        return dest;
-                    }
-                };
-                operator = new LookupOp(lookup, new RenderingHints(null));
-                break;
-        }
-    
-        return operator.filter(input, output);
+        //Kernel k = new Kernel(3, 3, new float[]{0f, 0f, 0f, -1f, 1f, 0f, 0f, 0f, 0f}); // Horizontal
+        Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 0f, -1f, 4f, -1f, 0f, -1f, 0f}); // Laplace
+        //Kernel k = new Kernel(3, 3, new float[]{-1f, -1f, 1f, -1f, -2f, 1f, 1f, 1f, 1f}); // SE Gradient
+        //Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 1f,  -1f, 1f,  1f, -1f, 0f, 1f}); // Emboss
+        BufferedImageOp operator = new ConvolveOp(k);
+        output = operator.filter(input, null);
+        return output;
     }
-
 
     @Override
     public Rectangle2D getBounds2D(BufferedImage src) {
@@ -80,6 +61,6 @@ public class Negative implements BufferedImageOp {
 
     @Override
     public String toString() {
-        return "Negative";
+        return "Laplace Edge Sharpener";
     }
 }

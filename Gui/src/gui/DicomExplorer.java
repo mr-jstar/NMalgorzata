@@ -5,9 +5,11 @@
  */
 package gui;
 
+import imageProcessing.Sharpener;
 import imageProcessing.BrightnessEnhancer;
-import imageProcessing.GaussianFilter;
+import imageProcessing.GaussianByConvolve;
 import imageProcessing.HistogramEqualizationFilter;
+import imageProcessing.Laplace;
 import imageProcessing.Negative;
 import mydicom.DicomFileContent;
 import java.awt.Image;
@@ -25,8 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -75,6 +76,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     private BufferedImageOp equalizer;
     private BufferedImageOp gaussian;
     private BufferedImageOp negative;
+    private BufferedImageOp sharpen;
+    private BufferedImageOp laplace;
     private final Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
 
     public DicomExplorer() {
@@ -259,6 +262,8 @@ public class DicomExplorer extends javax.swing.JFrame {
         histEqualizationItem = new javax.swing.JMenuItem();
         gaussianFilterItem = new javax.swing.JMenuItem();
         negativeItem = new javax.swing.JMenuItem();
+        sharpenerMenuItem = new javax.swing.JMenuItem();
+        laplaceMenuItem = new javax.swing.JMenuItem();
         viewMenu = new javax.swing.JMenu();
         switchListViewItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
@@ -557,7 +562,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         });
         filterMenu.add(histEqualizationItem);
 
-        gaussianFilterItem.setText("Gaussian Filter");
+        gaussianFilterItem.setText("Gaussian Blur");
         gaussianFilterItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 gaussianFilterItemActionPerformed(evt);
@@ -572,6 +577,22 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
         });
         filterMenu.add(negativeItem);
+
+        sharpenerMenuItem.setText("Sharpen");
+        sharpenerMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sharpenerMenuItemActionPerformed(evt);
+            }
+        });
+        filterMenu.add(sharpenerMenuItem);
+
+        laplaceMenuItem.setText("Laplace Filter");
+        laplaceMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                laplaceMenuItemActionPerformed(evt);
+            }
+        });
+        filterMenu.add(laplaceMenuItem);
 
         menuBar.add(filterMenu);
 
@@ -825,7 +846,8 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_histEqualizationItemActionPerformed
 
     private void gaussianFilterItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gaussianFilterItemActionPerformed
-        gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianFilter.class );
+        //gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianFilter.class );
+        gaussian = switchFilter(gaussian, gaussianFilterItem, GaussianByConvolve.class );
     }//GEN-LAST:event_gaussianFilterItemActionPerformed
 
     private void negativeItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_negativeItemActionPerformed
@@ -853,23 +875,28 @@ public class DicomExplorer extends javax.swing.JFrame {
     }//GEN-LAST:event_clearFilesButtonActionPerformed
 
     private void sortFilesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortFilesButtonActionPerformed
-        ArrayList<DicomFileContent> list = new ArrayList<>();
         DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) fileList.getModel();
         if (m.getSize() < 2) {
             return;
         }
-        for (int i = 0; i < m.getSize(); i++) {
-            list.add(m.getElementAt(i));
-        }
-        Collections.sort(list);
+        Object [] list = m.toArray();
+        Arrays.sort(list);
         m.removeAllElements();
-        for (DicomFileContent c : list) {
-            m.addElement(c);
+        for ( Object c : list) {
+            m.addElement((DicomFileContent)c);
         }
         currentImg = 0;
         fileList.setSelectedIndex(0);
         fileList.repaint();
     }//GEN-LAST:event_sortFilesButtonActionPerformed
+
+    private void sharpenerMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sharpenerMenuItemActionPerformed
+        sharpen = switchFilter(sharpen, sharpenerMenuItem, Sharpener.class);
+    }//GEN-LAST:event_sharpenerMenuItemActionPerformed
+
+    private void laplaceMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_laplaceMenuItemActionPerformed
+        laplace = switchFilter(laplace, laplaceMenuItem, Laplace.class);
+    }//GEN-LAST:event_laplaceMenuItemActionPerformed
 
     private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
         for (JRadioButtonMenuItem i : colorMappers.keySet()) {
@@ -882,7 +909,8 @@ public class DicomExplorer extends javax.swing.JFrame {
             fileList.getModel().getElementAt(i).updateImage(colorMappers.get(src));
         }
         fileList.repaint();
-        iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
+        if( currentImg != -1 )
+            iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
         iManager.repaint(zoomer.getCurrentScale());
         updateStatus();
     }
@@ -970,6 +998,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JRadioButtonMenuItem jstarCMItem;
+    private javax.swing.JMenuItem laplaceMenuItem;
     private javax.swing.JPanel leftPanel;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
@@ -981,6 +1010,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem savePNGMenuItem;
     private javax.swing.JPopupMenu.Separator separator1;
     private javax.swing.JPopupMenu.Separator separator2;
+    private javax.swing.JMenuItem sharpenerMenuItem;
     private javax.swing.JRadioButtonMenuItem silversteinCMItem;
     private javax.swing.JButton sortFilesButton;
     private javax.swing.JLabel status;

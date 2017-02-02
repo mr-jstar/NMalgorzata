@@ -13,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
+import java.awt.image.LookupOp;
+import java.awt.image.LookupTable;
 import java.awt.image.RescaleOp;
 
 /**
@@ -31,21 +33,44 @@ public class BrightnessEnhancer implements BufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        RescaleOp operator = new RescaleOp(scale, offset, null);
+        BufferedImageOp operator = null;
+        switch (input.getType()) {
+            case BufferedImage.TYPE_USHORT_GRAY:
+                operator = new RescaleOp(scale, offset, null);
+                break;
+            default:
+                input = BufferedImageTools.convertToARGB(input);
+            case BufferedImage.TYPE_INT_ARGB:
+                LookupTable lookup = new LookupTable(0, 4) {
+                    @Override
+                    public int[] lookupPixel(int[] src, int[] dest) {
+                        dest[0] = (int) (scale * src[0] + offset);
+                        dest[1] = (int) (scale * src[1] + offset);
+                        dest[2] = (int) (scale * src[2] + offset);
+                        dest[3] = (int) (scale * src[3] + offset);
+                        for( int i= 0; i < 4; i++ )
+                            dest[i] = (int)(Math.sqrt((float)src[i]/255.f)*255.f);
+                        return dest;
+                    }
+                };
+                operator = new LookupOp(lookup, new RenderingHints(null));
+                break;
+        }
+
         return operator.filter(input, output);
     }
 
     @Override
     public Rectangle2D getBounds2D(BufferedImage src) {
-        return new Rectangle(0,0,src.getWidth(),src.getHeight());
+        return new Rectangle(0, 0, src.getWidth(), src.getHeight());
     }
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if( src.getColorModel().equals(destCM)) 
+        if (src.getColorModel().equals(destCM)) {
             return src;
-        else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(),null);
+        } else {
+            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
             return op.filter(src, null);
         }
     }
@@ -60,8 +85,8 @@ public class BrightnessEnhancer implements BufferedImageOp {
     public RenderingHints getRenderingHints() {
         return null;
     }
-    
-        @Override
+
+    @Override
     public String toString() {
         return "BrightnestEnhancer";
     }

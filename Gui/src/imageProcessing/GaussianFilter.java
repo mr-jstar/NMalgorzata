@@ -23,12 +23,13 @@ import java.util.ArrayList;
 public class GaussianFilter implements BufferedImageOp {
 
     @Override
-    public BufferedImage filter(BufferedImage iInput, BufferedImage newImage) {
+    public BufferedImage filter(BufferedImage iInput, BufferedImage oImage) {
+        BufferedImage newImage = oImage == null ? new BufferedImage( iInput.getWidth(), iInput.getHeight(), iInput.getType() ) : oImage;
         int[] red = new int[9];
         int[] green = new int[9];
         int[] blue = new int[9];
         int alpha;
-        int[] HoodGaussian = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+        int[] gaussianHood = {1, 2, 1, 2, 4, 2, 1, 2, 1};
 
         int a, b;
 
@@ -51,9 +52,9 @@ public class GaussianFilter implements BufferedImageOp {
                 kolRGB.add(blue);
                 // zmiana wartości ponożonych przez maske filtru Gaussa
                 for (k = 0; k < 9; k++) {
-                    kolRGB.get(0)[k] = kolRGB.get(0)[k] * HoodGaussian[k];
-                    kolRGB.get(1)[k] = kolRGB.get(1)[k] * HoodGaussian[k];
-                    kolRGB.get(2)[k] = kolRGB.get(2)[k] * HoodGaussian[k];
+                    kolRGB.get(0)[k] = kolRGB.get(0)[k] * gaussianHood[k];
+                    kolRGB.get(1)[k] = kolRGB.get(1)[k] * gaussianHood[k];
+                    kolRGB.get(2)[k] = kolRGB.get(2)[k] * gaussianHood[k];
                 }
                 //ostateczny wyniki (i,j)
                 int wynikR = 0;

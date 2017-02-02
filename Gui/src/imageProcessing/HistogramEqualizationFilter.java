@@ -123,11 +123,12 @@ public class HistogramEqualizationFilter implements BufferedImageOp {
     }
 
     @Override
-    public BufferedImage filter(BufferedImage iInput, BufferedImage newImage) {
+    public BufferedImage filter(BufferedImage iInput, BufferedImage oImage) {
         int red;
         int green;
         int blue;
         int alpha;
+        BufferedImage newImage = oImage == null ? new BufferedImage( iInput.getWidth(), iInput.getHeight(), iInput.getType() ) : oImage;
 
         ArrayList<int[]> hisLUT = histogramLut(iInput);
 
