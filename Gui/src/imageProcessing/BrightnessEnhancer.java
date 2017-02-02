@@ -40,7 +40,7 @@ public class BrightnessEnhancer implements BufferedImageOp {
                 break;
             default:
                 input = BufferedImageTools.convertToARGB(input);
-            case BufferedImage.TYPE_INT_ARGB:
+            case BufferedImage.TYPE_INT_ARGB:  // to trzeba poprawić!
                 LookupTable lookup = new LookupTable(0, 4) {
                     @Override
                     public int[] lookupPixel(int[] src, int[] dest) {
@@ -48,8 +48,6 @@ public class BrightnessEnhancer implements BufferedImageOp {
                         dest[1] = (int) (scale * src[1] + offset);
                         dest[2] = (int) (scale * src[2] + offset);
                         dest[3] = (int) (scale * src[3] + offset);
-                        for( int i= 0; i < 4; i++ )
-                            dest[i] = (int)(Math.sqrt((float)src[i]/255.f)*255.f);
                         return dest;
                     }
                 };
