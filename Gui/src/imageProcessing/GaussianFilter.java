@@ -24,7 +24,7 @@ public class GaussianFilter implements BufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage iInput, BufferedImage oImage) {
-        BufferedImage newImage = oImage == null ? new BufferedImage( iInput.getWidth(), iInput.getHeight(), iInput.getType() ) : oImage;
+        BufferedImage newImage = oImage == null ? new BufferedImage(iInput.getWidth(), iInput.getHeight(), iInput.getType()) : oImage;
         int[] red = new int[9];
         int[] green = new int[9];
         int[] blue = new int[9];
@@ -92,12 +92,10 @@ public class GaussianFilter implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override

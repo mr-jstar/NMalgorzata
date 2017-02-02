@@ -37,12 +37,10 @@ public class Sharpener implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override

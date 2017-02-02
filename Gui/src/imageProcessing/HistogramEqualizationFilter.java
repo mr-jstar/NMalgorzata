@@ -128,7 +128,7 @@ public class HistogramEqualizationFilter implements BufferedImageOp {
         int green;
         int blue;
         int alpha;
-        BufferedImage newImage = oImage == null ? new BufferedImage( iInput.getWidth(), iInput.getHeight(), iInput.getType() ) : oImage;
+        BufferedImage newImage = oImage == null ? new BufferedImage(iInput.getWidth(), iInput.getHeight(), iInput.getType()) : oImage;
 
         ArrayList<int[]> hisLUT = histogramLut(iInput);
 
@@ -159,12 +159,10 @@ public class HistogramEqualizationFilter implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override

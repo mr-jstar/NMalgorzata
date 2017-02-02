@@ -15,6 +15,9 @@ import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.awt.image.LookupOp;
+import java.awt.image.LookupTable;
+import java.awt.image.RescaleOp;
 
 /**
  *
@@ -24,12 +27,23 @@ public class Laplace implements BufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        //Kernel k = new Kernel(3, 3, new float[]{0f, 0f, 0f, -1f, 1f, 0f, 0f, 0f, 0f}); // Horizontal
-        Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 0f, -1f, 4f, -1f, 0f, -1f, 0f}); // Laplace
-        //Kernel k = new Kernel(3, 3, new float[]{-1f, -1f, 1f, -1f, -2f, 1f, 1f, 1f, 1f}); // SE Gradient
-        //Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 1f,  -1f, 1f,  1f, -1f, 0f, 1f}); // Emboss
-        BufferedImageOp operator = new ConvolveOp(k);
-        output = operator.filter(input, null);
+
+        switch (input.getType()) {
+            case BufferedImage.TYPE_USHORT_GRAY:
+                //Kernel k = new Kernel(3, 3, new float[]{0f, 0f, 0f, -1f, 1f, 0f, 0f, 0f, 0f}); // Horizontal
+                //Kernel k = new Kernel(3, 3, new float[]{-1f, -1f, 1f, -1f, -2f, 1f, 1f, 1f, 1f}); // SE Gradient
+                //Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 1f,  -1f, 1f,  1f, -1f, 0f, 1f}); // Emboss
+                Kernel k = new Kernel(3, 3, new float[]{0f, -1f, 0f, -1f, 4f, -1f, 0f, -1f, 0f}); // Laplace
+                BufferedImageOp operator = new ConvolveOp(k);
+                output = operator.filter(input, null);
+                break;
+            default:
+                input = BufferedImageTools.convertToARGB(input);
+            case BufferedImage.TYPE_INT_ARGB:  // to trzeba poprawić!
+                operator = new RGBLaplace();
+                output = operator.filter(input, output);
+                break;
+        }
         return output;
     }
 
@@ -40,12 +54,10 @@ public class Laplace implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override

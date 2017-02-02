@@ -24,8 +24,8 @@ public class GaussianByConvolve implements BufferedImageOp {
 
     @Override
     public BufferedImage filter(BufferedImage input, BufferedImage output) {
-        float oneF = 1f/15f;
-        Kernel k = new Kernel(3, 3, new float[]{oneF, 2*oneF, oneF, 2*oneF, 4*oneF, 2*oneF, oneF, 2*oneF, oneF });
+        float oneF = 1f / 15f;
+        Kernel k = new Kernel(3, 3, new float[]{oneF, 2 * oneF, oneF, 2 * oneF, 4 * oneF, 2 * oneF, oneF, 2 * oneF, oneF});
         BufferedImageOp operator = new ConvolveOp(k);
         output = operator.filter(input, null);
         return output;
@@ -38,12 +38,10 @@ public class GaussianByConvolve implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override

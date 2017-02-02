@@ -5,14 +5,12 @@
  */
 package imageProcessing;
 
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
 import java.awt.image.LookupOp;
 import java.awt.image.LookupTable;
@@ -47,10 +45,9 @@ public class Negative implements BufferedImageOp {
                 operator = new LookupOp(lookup, new RenderingHints(null));
                 break;
         }
-    
+
         return operator.filter(input, output);
     }
-
 
     @Override
     public Rectangle2D getBounds2D(BufferedImage src) {
@@ -59,12 +56,10 @@ public class Negative implements BufferedImageOp {
 
     @Override
     public BufferedImage createCompatibleDestImage(BufferedImage src, ColorModel destCM) {
-        if (src.getColorModel().equals(destCM)) {
-            return src;
-        } else {
-            ColorConvertOp op = new ColorConvertOp(destCM.getColorSpace(), null);
-            return op.filter(src, null);
+        if (destCM == null) {
+            destCM = src.getColorModel();
         }
+        return new BufferedImage(destCM, destCM.createCompatibleWritableRaster(src.getWidth(), src.getHeight()), destCM.isAlphaPremultiplied(), null);
     }
 
     @Override
