@@ -61,8 +61,9 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         out.writeObject(fileData);
         out.writeObject(sliceLocation);
         out.writeObject(hu);
-        out.writeObject(image.getWidth());
-        out.writeObject(image.getHeight());
+        out.writeObject(image.getWidth());  // cols
+        out.writeObject(image.getHeight()); // rows
+        System.out.println( "Saved " + image.getWidth() + "x" + image.getHeight());
     }
 
     @Override
@@ -71,15 +72,17 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         fileData = (String) in.readObject();
         sliceLocation = (Double) in.readObject();
         hu = (short[]) in.readObject();
-        int width = (int) in.readObject();
-        int height = (int) in.readObject();
-        image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        int cols = (int) in.readObject();
+        int rows = (int) in.readObject();
+        System.out.println( "Read " + cols + "x" + rows);
+        image = new BufferedImage(cols, rows, BufferedImage.TYPE_BYTE_GRAY);
+        System.out.println( "Created " + image.getWidth() + "x" + image.getHeight());
         calcHUminAndmax();
     }
 
     public void updateImage(HUMapper mapper) {
         if( image != null ) {
-            image = mapper.map(image.getWidth(), image.getHeight(), hu);
+            image = mapper.map(image.getHeight(), image.getWidth(), hu);
         } else {
             throw new NullPointerException("DicomFileContent::updateImage: image is null, but can not be!");
         }

@@ -11,31 +11,38 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class HU2GrayMapper implements HUMapper {
-
-    final static int MX = 2 * Short.MAX_VALUE;
+public class RTG2GrayMapper implements HUMapper {
 
     @Override
-    public BufferedImage map(int rows, int cols, short[] hu) {
-        if (rows * cols != hu.length) {
+    public BufferedImage map(int rows, int cols, short[] rtg) {
+        if (rows * cols != rtg.length) {
             return null;
         }
 
         BufferedImage bImg = new BufferedImage(cols, rows, BufferedImage.TYPE_USHORT_GRAY);
 
-        for (int i = 0; i < hu.length; i++) {
+        int min = Short.MAX_VALUE, max = 0;
+
+        for (int i = 0; i < rtg.length; i++) {
             int x = i % cols;
             int y = i / cols;
-            double hd = (hu[i] + 1000) / 4000.0;
-            short pi = (short) (MX * hd);
+            int pi = rtg[i];
+            if (pi < min) {
+                min = pi;
+            }
+            if (pi > max) {
+                max = pi;
+            }
+            pi *= 2;
             bImg.setRGB(x, y, pi);
         }
+        //System.out.println("RTG2GrayMapper:  " + cols + "x" + rows + " <" + min + " : " + max + ">");
         return bImg;
     }
 
     @Override
-    public boolean equals( Object o ) {
-        return o instanceof HU2GrayMapper;
+    public boolean equals(Object o) {
+        return o instanceof RTG2GrayMapper;
     }
 
     @Override

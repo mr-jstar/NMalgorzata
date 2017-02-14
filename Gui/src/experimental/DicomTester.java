@@ -30,7 +30,16 @@ public class DicomTester {
                 Iterator it = ldcm.getDataset().getIterator();
                 while (it.hasNext()) {
                     DataElement lElement = (DataElement) it.next();
-                    System.out.println(lElement.getTag().getName() + " = " + lElement.getSingleStringValue() );
+                    if (lElement.getTag().getName().equals("Unknow") || lElement.getTag().getName().equals("Private")) {
+                        System.out.println(lElement.getTag().getName() + " ???");
+                    } else {
+                        if (lElement.getValueMultiplicity() == 1) {
+                            System.out.println(lElement.getTag().getName() + " = " + lElement.getSingleStringValue());
+                        } else {
+                            System.out.println(lElement.getTag().getName() + " -> list");
+                            //System.out.println(lElement.getTag().getName() + " = " + lElement.getSingleStringValue());
+                        }
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

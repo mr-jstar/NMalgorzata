@@ -53,6 +53,7 @@ import mydicom.HU2GrayMapper;
 import mydicom.HU2RGBMapperByJstar;
 import mydicom.HU2RGBMapperBySilverstein;
 import mydicom.HUMapper;
+import mydicom.RTG2GrayMapper;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -110,7 +111,9 @@ public class DicomExplorer extends javax.swing.JFrame {
                 currentImg = fileList.getSelectedIndex();//obiekt JList pobiera wybrane wartości
 
                 if (currentImg >= 0) {
-                    iManager.updateImg(fileList.getModel().getElementAt(currentImg).getImage());
+                    BufferedImage img = fileList.getModel().getElementAt(currentImg).getImage();
+                    System.out.println( "Drawing " + img.getWidth() + "x" + img.getHeight());
+                    iManager.updateImg(img);
                     iManager.repaint(zoomer.getCurrentScale());
                     patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
 
@@ -121,6 +124,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         colorMappers.put(silversteinCMItem, new HU2RGBMapperBySilverstein());
         colorMappers.put(jstarCMItem, new HU2RGBMapperByJstar());
         colorMappers.put(grayscaleCMItem, new HU2GrayMapper());
+        colorMappers.put(rtgCMItem, new RTG2GrayMapper());
 
         MouseAdapter ma = new MouseAdapter() {
 
@@ -276,6 +280,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         silversteinCMItem = new javax.swing.JRadioButtonMenuItem();
         jstarCMItem = new javax.swing.JRadioButtonMenuItem();
         grayscaleCMItem = new javax.swing.JRadioButtonMenuItem();
+        rtgCMItem = new javax.swing.JRadioButtonMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setBackground(new java.awt.Color(0, 0, 0));
@@ -659,6 +664,14 @@ public class DicomExplorer extends javax.swing.JFrame {
         });
         viewMenu.add(grayscaleCMItem);
 
+        rtgCMItem.setText("RTG grayscale");
+        rtgCMItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rtgCMItemActionPerformed(evt);
+            }
+        });
+        viewMenu.add(rtgCMItem);
+
         menuBar.add(viewMenu);
 
         setJMenuBar(menuBar);
@@ -668,14 +681,19 @@ public class DicomExplorer extends javax.swing.JFrame {
 
     private void openFileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser(new File(initialPath));
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
-        chooser.setFileFilter(filter);
+        //FileNameExtensionFilter filter = new FileNameExtensionFilter("DCOM Images", "dcm");
+        //chooser.setFileFilter(filter);
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             file = chooser.getSelectedFile();
             initialPath = file.getPath();
             try {
                 DicomFileContent fc = DicomTools.openDicomFile(file, getActiveMapper());
+
+                if (fc == null) {
+                    status.setText("invalid file!");
+                    return;
+                }
 
                 int pos = -1;
                 for (int i = 0; i < fileList.getModel().getSize(); i++) {
@@ -751,10 +769,19 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void serializeState() {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rcPath))) {
             out.writeObject(initialPath);
+            out.writeObject(getActiveMapper().getClass().getCanonicalName());
             DefaultListModel<DicomFileContent> m = (DefaultListModel<DicomFileContent>) fileList.getModel();
-            out.writeObject(m.getSize());
+            int n = 0;
+            for (int i = 0; i < m.getSize(); i++) {  // to jest brzydka łata
+                if (m.elementAt(i) != null) {
+                    n++;
+                }
+            }
+            out.writeObject(n);
             for (int i = 0; i < m.getSize(); i++) {
-                m.elementAt(i).writeExternal(out);
+                if (m.elementAt(i) != null) {
+                    m.elementAt(i).writeExternal(out);
+                }
             }
             out.close();
         } catch (IOException i) {
@@ -765,8 +792,10 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void deSerializeState() {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(rcPath))) {
             initialPath = (String) in.readObject();
-            int n = (Integer) in.readObject();
+            String mapperClass = (String) in.readObject();
+            selectMapperByClassName(mapperClass);
             HUMapper mpr = getActiveMapper();
+            int n = (Integer) in.readObject();
             DefaultListModel<DicomFileContent> model = new DefaultListModel<>();
             for (int i = 0; i < n; i++) {
                 DicomFileContent c = new DicomFileContent(in);
@@ -933,6 +962,10 @@ public class DicomExplorer extends javax.swing.JFrame {
         brightnessSliderStateChanged(evt);
     }//GEN-LAST:event_contrastSliderStateChanged
 
+    private void rtgCMItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rtgCMItemActionPerformed
+        jRadioButtonMenuItemAction((JRadioButtonMenuItem) evt.getSource());
+    }//GEN-LAST:event_rtgCMItemActionPerformed
+
     private void jRadioButtonMenuItemAction(JRadioButtonMenuItem src) {
         for (JRadioButtonMenuItem i : colorMappers.keySet()) {
             i.setSelected(false);
@@ -958,6 +991,18 @@ public class DicomExplorer extends javax.swing.JFrame {
             }
         }
         throw new NullPointerException("DicomExplorer::getActiveMapper : any mapper must be selected!"); // should never happen
+    }
+
+    private void selectMapperByClassName(String name) {
+        for (JRadioButtonMenuItem b : colorMappers.keySet()) {
+            if (colorMappers.get(b).getClass().getCanonicalName().equals(name)) {
+                b.setSelected(true);
+                b.setEnabled(false);
+            } else {
+                b.setSelected(false);
+                b.setEnabled(true);
+            }
+        }
     }
 
     private void updateStatus() {
@@ -1045,6 +1090,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem openFileMenuItem;
     private javax.swing.JLabel patientData;
     private javax.swing.JPanel rightPanel;
+    private javax.swing.JRadioButtonMenuItem rtgCMItem;
     private javax.swing.JMenuItem savePNGMenuItem;
     private javax.swing.JPopupMenu.Separator separator1;
     private javax.swing.JPopupMenu.Separator separator2;

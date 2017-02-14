@@ -126,7 +126,7 @@ public class DicomTools {
         for (File file : imageFiles) {
             //System.err.print("Trying " + file.getName());
             try {
-                DicomFileContent im = openDicomFile(file,mapper);
+                DicomFileContent im = openDicomFile(file, mapper);
                 if (im != null) {
                     list.add(im);
                     //System.err.println(" -> ok! : ");
@@ -152,49 +152,44 @@ public class DicomTools {
         float slope = 0;
         float intercept = 0;
         double location = 0;
-        short hmin = 1000, hmax = -1000;
-        String fname = file.getName();
-        String end = ".dcm";
-        short[] ldata= null;
-        if (fname.endsWith(end)) {
-            DicomFile ldcm = new DicomFile(file);
-            ldcm.open();
-            ldcm.getDataset();
-            Iterator iterator = ldcm.getDataset().getIterator();
-            while (iterator.hasNext()) {
-                DataElement lElement = (DataElement) iterator.next();
-                String tagName = lElement.getTag().getName();
-                //System.err.println( tagName );
-                if (tagName.equals("Rescale Slope")) {
-                    String sl = lElement.getSingleStringValue();
-                    slope = Float.valueOf(sl);
+        short[] ldata = null;
+        DicomFile ldcm = new DicomFile(file);
+        ldcm.open();
+        ldcm.getDataset();
+        Iterator iterator = ldcm.getDataset().getIterator();
+        while (iterator.hasNext()) {
+            DataElement lElement = (DataElement) iterator.next();
+            String tagName = lElement.getTag().getName();
+            //System.err.println( tagName );
+            if (tagName.equals("Rescale Slope")) {
+                String sl = lElement.getSingleStringValue();
+                slope = Float.valueOf(sl);
+            }
+            if (tagName.equals("Rescale Intercept")) {
+                String in = lElement.getSingleStringValue();
+                intercept = Float.valueOf(in);
+            }
+            if (tagName.equals("Rows")) {
+                rows = lElement.getSingleIntegerValue();
+            }
+            if (tagName.equals("Columns")) {
+                cols = lElement.getSingleIntegerValue();
+            }
+            if (tagName.equals("Slice Location")) {
+                location = Double.parseDouble(lElement.getSingleStringValue());
+            }
+            if (tagName.equals("Pixel Data")) {
+                ldata = lElement.getShortValues();
+                if (rows * cols != ldata.length) {
+                    break;
                 }
-                if (tagName.equals("Rescale Intercept")) {
-                    String in = lElement.getSingleStringValue();
-                    intercept = Float.valueOf(in);
+                for (int i = 0; i < ldata.length; i++) {
+                    int x = i % cols;
+                    int y = i / cols;
+                    ldata[i] = (short) (ldata[i] * slope + intercept);
                 }
-                if (tagName.equals("Rows")) {
-                    rows = lElement.getSingleIntegerValue();
-                }
-                if (tagName.equals("Columns")) {
-                    cols = lElement.getSingleIntegerValue();
-                }
-                if (tagName.equals("Slice Location")) {
-                    location = Double.parseDouble(lElement.getSingleStringValue());
-                }
-                if (tagName.equals("Pixel Data")) {
-                    ldata = lElement.getShortValues();
-                    if (rows * cols != ldata.length) {
-                        break;
-                    }
-                    for (int i = 0; i < ldata.length; i++) {
-                        int x = i % cols;
-                        int y = i / cols;
-                        ldata[i] = (short) (ldata[i] * slope + intercept);
-                    }
-                    //bImg = (new HU2GrayMapper()).map(rows, cols, ldata);
-                    bImg = mapper.map(rows, cols, ldata);
-                }
+                //bImg = (new HU2GrayMapper()).map(rows, cols, ldata);
+                bImg = mapper.map(rows, cols, ldata);
             }
         }
         return bImg == null ? null : new DicomFileContent(file, location, ldata, bImg);
