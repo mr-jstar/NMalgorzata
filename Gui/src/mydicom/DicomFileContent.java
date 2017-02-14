@@ -63,7 +63,7 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         out.writeObject(hu);
         out.writeObject(image.getWidth());  // cols
         out.writeObject(image.getHeight()); // rows
-        System.out.println( "Saved " + image.getWidth() + "x" + image.getHeight());
+        //System.out.println( "Saved " + image.getWidth() + "x" + image.getHeight());
     }
 
     @Override
@@ -74,9 +74,9 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         hu = (short[]) in.readObject();
         int cols = (int) in.readObject();
         int rows = (int) in.readObject();
-        System.out.println( "Read " + cols + "x" + rows);
+        //System.out.println( "Read " + cols + "x" + rows);
         image = new BufferedImage(cols, rows, BufferedImage.TYPE_BYTE_GRAY);
-        System.out.println( "Created " + image.getWidth() + "x" + image.getHeight());
+        //System.out.println( "Created " + image.getWidth() + "x" + image.getHeight());
         calcHUminAndmax();
     }
 

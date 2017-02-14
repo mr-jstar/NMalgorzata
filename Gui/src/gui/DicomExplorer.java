@@ -112,7 +112,7 @@ public class DicomExplorer extends javax.swing.JFrame {
 
                 if (currentImg >= 0) {
                     BufferedImage img = fileList.getModel().getElementAt(currentImg).getImage();
-                    System.out.println( "Drawing " + img.getWidth() + "x" + img.getHeight());
+                    //System.out.println( "Drawing " + img.getWidth() + "x" + img.getHeight());
                     iManager.updateImg(img);
                     iManager.repaint(zoomer.getCurrentScale());
                     patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
