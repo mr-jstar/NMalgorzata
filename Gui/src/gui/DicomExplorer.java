@@ -27,7 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -36,6 +38,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -81,6 +84,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private BufferedImageOp sharpen;
     private BufferedImageOp laplace;
     private final Map<JRadioButtonMenuItem, PixelDataMapper> colorMappers = new HashMap<>();
+    private final ArrayList<DicomFileContent> selectedFiles = new ArrayList<>();
 
     public DicomExplorer() {
         initComponents();
@@ -88,6 +92,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         iManager = new ImageManager(imageHolder);
         zoomer = new ZoomSliderListener(iManager);
         zoomSlider.addChangeListener(zoomer);
+
         Hashtable labels = new Hashtable();
         labels.put(NORMAL_4_ZOOM_SLIDER / 5, new JLabel("1:5"));
         labels.put(NORMAL_4_ZOOM_SLIDER, new JLabel("1:1"));
@@ -116,10 +121,42 @@ public class DicomExplorer extends javax.swing.JFrame {
                     iManager.updateImg(img);
                     iManager.repaint(zoomer.getCurrentScale());
                     patientData.setText(fileList.getModel().getElementAt(currentImg).getData());
-
+                    pixelData.setText("");
                 }
             }
         });
+
+        fileList.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyChar() == 's') {
+                    DicomFileContent f = fileList.getModel().getElementAt(fileList.getSelectedIndex());
+                    selectedFiles.add(f);
+                }
+                if (e.getKeyChar() == 'x') {
+                    DicomFileContent f = fileList.getModel().getElementAt(fileList.getSelectedIndex());
+                    selectedFiles.remove(f);
+                }
+                if (e.getKeyChar() == 'Q') {
+                    selectedFiles.clear();
+                }
+                if (e.getKeyChar() == 'O') {
+                    Collections.sort(selectedFiles);
+                }
+                if (e.getKeyChar() == 'P') {
+                    for (DicomFileContent f : selectedFiles) {
+                        System.out.println(f.getName());
+                    }
+                }
+            }
+        });
+        fileList.setToolTipText("<html>"
+                + "s - add file to selection<br>"
+                + "x - remove file from selection<br>"
+                + "Q - clear selection<br>"
+                + "O - sort selection (by slice)<br>"
+                + "P - print selection to stdout"
+                + "</html>");
 
         colorMappers.put(silversteinCMItem, new HU2RGBMapperBySilverstein());
         colorMappers.put(jstarCMItem, new HU2RGBMapperByJstar());
@@ -138,6 +175,36 @@ public class DicomExplorer extends javax.swing.JFrame {
             @Override
             public void mousePressed(MouseEvent e) {
                 origin = new Point(e.getPoint());
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    //System.out.println(origin);
+                    Icon icon = imageHolder.getIcon();
+                    if (icon != null) {
+                        //System.out.println(icon.getIconWidth() + "x" + icon.getIconHeight());
+                        JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, imageHolder);
+                        if (viewPort != null) {
+                            Rectangle view = viewPort.getViewRect();
+                            //System.out.println(view);
+                            int imgX, imgY;
+                            if (view.getMinX() == 0) {
+                                imgX = icon.getIconWidth() < view.getMaxX() ? origin.x - ((int) view.getMaxX() - icon.getIconWidth()) / 2 : origin.x;
+                            } else {
+                                imgX = origin.x;// + (int) view.getMinX();
+                            }
+                            if (view.getMinY() == 0) {
+                                imgY = icon.getIconHeight() < view.getMaxY() ? origin.y - ((int) view.getMaxY() - icon.getIconHeight()) / 2 : origin.y;
+                            } else {
+                                imgY = origin.y;// + (int) view.getMinY();
+                            }
+                            //System.out.println(imgX + "," + imgY);
+                            if (imgX > 0 && imgY > 0 && currentImg >= 0) {
+                                DicomFileContent fc = fileList.getModel().getElementAt(currentImg);
+                                imgX = (int) ((double) imgX / icon.getIconWidth() * fc.getWidth());
+                                imgY = (int) ((double) imgY / icon.getIconHeight() * fc.getHeight());
+                                pixelData.setText("Pixel Data=" + fc.getPixelData(imgX, imgY) + " @" + imgX + "," + imgY + "    ");
+                            }
+                        }
+                    }
+                }
             }
 
             @Override
@@ -215,6 +282,13 @@ public class DicomExplorer extends javax.swing.JFrame {
                 }
             }
         });
+        imageHolder.setToolTipText("<html>"
+                + "Use \"+\" - zoom in<br>"
+                + "Use \"-\" - zoom out<br>"
+                + "Drag Mouse + Left Key - move<br>"
+                + "Arrows - move<br>"
+                + "Right Mouse Key to Pick pixel data"
+                + "</html>");
 
         fileList.setModel(new DefaultListModel<DicomFileContent>());
         deSerializeState();
@@ -258,6 +332,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         statusPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         status = new javax.swing.JLabel();
+        pixelData = new javax.swing.JLabel();
         rightPanel = new javax.swing.JPanel();
         leftPanel = new javax.swing.JPanel();
         menuBar = new javax.swing.JMenuBar();
@@ -494,7 +569,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 20, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
         statusPanel.add(jPanel2, java.awt.BorderLayout.WEST);
@@ -502,6 +577,9 @@ public class DicomExplorer extends javax.swing.JFrame {
         status.setFont(new java.awt.Font("Ubuntu", 0, 12)); // NOI18N
         status.setText("Applied filters:");
         statusPanel.add(status, java.awt.BorderLayout.CENTER);
+
+        pixelData.setText(" ");
+        statusPanel.add(pixelData, java.awt.BorderLayout.EAST);
 
         mainPanel.add(statusPanel, java.awt.BorderLayout.SOUTH);
 
@@ -1008,6 +1086,9 @@ public class DicomExplorer extends javax.swing.JFrame {
     private void updateStatus() {
         if (currentImg >= 0 && currentImg < fileList.getModel().getSize()) {
             StringBuilder sb = new StringBuilder("HU: " + fileList.getModel().getElementAt(currentImg).getHURange() + " Applied filters: ");
+            if (iManager.size() == 0) {
+                sb.append(" none");
+            }
             for (BufferedImageOp f : iManager) {
                 sb.append(f.toString()).append(' ');
             }
@@ -1089,6 +1170,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem openDirMenuItem;
     private javax.swing.JMenuItem openFileMenuItem;
     private javax.swing.JLabel patientData;
+    private javax.swing.JLabel pixelData;
     private javax.swing.JPanel rightPanel;
     private javax.swing.JRadioButtonMenuItem rtgCMItem;
     private javax.swing.JMenuItem savePNGMenuItem;

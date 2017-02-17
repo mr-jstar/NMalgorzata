@@ -147,6 +147,13 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
     public double getHeight() {
         return rows;
     }
+    
+    public short getPixelData( int x, int y ) {
+        if( x >= 0 && x < cols && y >= 0 && y <= rows )
+            return pixel_data[ y*cols + x ];
+        else
+            return 0;
+    }
 
     public AbstractMap.SimpleImmutableEntry<Short, Short> getHURange() {
         return new AbstractMap.SimpleImmutableEntry<>(data_min, data_max);

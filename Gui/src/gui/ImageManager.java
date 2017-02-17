@@ -51,6 +51,10 @@ public class ImageManager implements Iterable<BufferedImageOp> {
     public Iterator<BufferedImageOp> iterator() {
         return filters.iterator();
     }
+    
+    public int size() {
+        return filters.size();
+    }
 
     public void repaint(double scale) {
         //System.err.println("ImageManager::repaint");
