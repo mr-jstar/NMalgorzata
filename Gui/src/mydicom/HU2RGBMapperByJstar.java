@@ -12,13 +12,13 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class HU2RGBMapperByJstar implements HUMapper {
+public class HU2RGBMapperByJstar implements PixelDataMapper {
 
     // jstar wymyślał
-    final static short[] HS = {-1001, 0, 100, 200, 1000, 4000};
-    final static short[] RS = {0, 127, 127, 127, 168, 255};
-    final static short[] GS = {0, 127, 127, 168, 50, 255};
-    final static short[] BS = {0, 127, 168, 168, 194, 255};
+    final static short[] HS = {-1001,   0, 100, 200, 1000, 1500, 4000};
+    final static short[] RS = {    0, 127, 127, 168,  255,  153,   51};
+    final static short[] GS = {    0, 127, 168,  50,  255,  204,  153};
+    final static short[] BS = {    0, 168, 168, 194,  255,  255,  255};
 
     @Override
     public BufferedImage map(int rows, int cols, short[] hu) {
@@ -36,7 +36,11 @@ public class HU2RGBMapperByJstar implements HUMapper {
             while (j < HS.length && HS[j] < hu[i]) {
                 j++;
             }
-            if (j == HS.length) {
+            if (j == 0) {
+                red = RS[0];
+                green = GS[0];
+                blue = BS[0];
+            } else if (j == HS.length) {
                 red = RS[HS.length - 1];
                 green = GS[HS.length - 1];
                 blue = BS[HS.length - 1];

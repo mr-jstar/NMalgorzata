@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class HU2GrayMapper implements HUMapper {
+public class HU2GrayMapper implements PixelDataMapper {
 
     final static int MX = 2 * Short.MAX_VALUE;
 

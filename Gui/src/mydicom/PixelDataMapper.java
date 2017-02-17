@@ -11,6 +11,6 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public interface HUMapper {
+public interface PixelDataMapper {
     public BufferedImage map( int rows, int cols, short [] hu );
 }

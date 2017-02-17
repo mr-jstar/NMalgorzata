@@ -29,13 +29,14 @@ public class DicomTools {
         String creationDate = "";
         String datee = "";
         String modality = "";
+        int modalityTag = DicomFileContent.UNKNOWN;
         String institutionName = "";
         String studyDescription = "";
         String seriesDescription = "";
         String physicianOfRecord = "";
         String patientName = "";
         String bodyPartExamined = "";
-        String slicePosition = "unknown";
+        String slicePosition = "Slice Location: unknown";
         DicomFile ldcm = new DicomFile(file);
         ldcm.open();
         ldcm.getDataset();
@@ -55,6 +56,11 @@ public class DicomTools {
 
             if (lElement.getTag().getName().equals("Modality")) {
                 modality = lElement.getSingleStringValue("empty");
+                if (modality.equals("CT")) {
+                    modalityTag = DicomFileContent.CT;
+                } else if (modality.equals("RTG")) {
+                    modalityTag = DicomFileContent.CR;
+                }
                 modality = "Modality: " + modality;
             }
 
@@ -108,7 +114,7 @@ public class DicomTools {
 
     // Pobiera pliki z obrazami z katalogu i pakuje je do ListModel
     // oraz tworzy mapę obraz -> nazwa pliku
-    public static void readDicomDir(File directory, DefaultListModel<DicomFileContent> model, HUMapper mapper) throws IOException {
+    public static void readDicomDir(File directory, DefaultListModel<DicomFileContent> model, PixelDataMapper mapper) throws IOException {
         System.err.println("Opening " + directory.getAbsolutePath());
         File[] imageFiles = directory.listFiles(new FilenameFilter() {
             @Override
@@ -121,7 +127,7 @@ public class DicomTools {
         System.err.println(model.getSize() + " images read from " + directory);
     }
 
-    public static void processFileList(File[] imageFiles, DefaultListModel<DicomFileContent> model, HUMapper mapper) throws IOException {
+    public static void processFileList(File[] imageFiles, DefaultListModel<DicomFileContent> model, PixelDataMapper mapper) throws IOException {
         ArrayList<DicomFileContent> list = new ArrayList<>();
         for (File file : imageFiles) {
             //System.err.print("Trying " + file.getName());
@@ -145,7 +151,7 @@ public class DicomTools {
         }
     }
 
-    public static DicomFileContent openDicomFile(File file, HUMapper mapper) throws Exception {
+    public static DicomFileContent openDicomFile(File file, PixelDataMapper mapper) throws Exception {
         BufferedImage bImg = null;
         int rows = 0; //tworzenie smiennej wiersz
         int cols = 0;
@@ -153,6 +159,8 @@ public class DicomTools {
         float intercept = 0;
         double location = 0;
         short[] ldata = null;
+        String modality = "";
+        int modalityTag = DicomFileContent.UNKNOWN;
         DicomFile ldcm = new DicomFile(file);
         ldcm.open();
         ldcm.getDataset();
@@ -161,6 +169,14 @@ public class DicomTools {
             DataElement lElement = (DataElement) iterator.next();
             String tagName = lElement.getTag().getName();
             //System.err.println( tagName );
+            if (lElement.getTag().getName().equals("Modality")) {
+                modality = lElement.getSingleStringValue("empty");
+                if (modality.equals("CT")) {
+                    modalityTag = DicomFileContent.CT;
+                } else if (modality.equals("RTG")) {
+                    modalityTag = DicomFileContent.CR;
+                }
+            }
             if (tagName.equals("Rescale Slope")) {
                 String sl = lElement.getSingleStringValue();
                 slope = Float.valueOf(sl);
@@ -192,7 +208,7 @@ public class DicomTools {
                 bImg = mapper.map(rows, cols, ldata);
             }
         }
-        return bImg == null ? null : new DicomFileContent(file, location, ldata, bImg);
+        return bImg == null ? null : new DicomFileContent(file, location, modalityTag, ldata, bImg);
     }
 
     // Wyświetla strukturę Dicoma do standardowego wyjścia

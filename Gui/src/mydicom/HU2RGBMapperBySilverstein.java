@@ -12,13 +12,13 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class HU2RGBMapperBySilverstein implements HUMapper {
+public class HU2RGBMapperBySilverstein implements PixelDataMapper {
 
     // Silverstein, Parsad, Tsirline, Journal of Biomed. Informatics, 41 (2008) 927-935
-    final static short[] HS = {-1001, -500, -80, 60, 1000};   // -1000, -600 to -400, -100 to -60, 40 to 80, 400 to 1000
-    final static short[] RS = {0, 194, 194, 110, 255};   // 0,194,194,102 to 153,255
-    final static short[] GS = {0, 105, 166, 0, 255};   // 0,105,166,0,255
-    final static short[] BS = {0, 82, 115, 0, 255};   // 0,82,115,0,255
+    final static short[] HS = {-1001, -500, -80,  60, 1000, 4000};   // -1000, -600 to -400, -100 to -60, 40 to 80, 400 to 1000
+    final static short[] RS = {    0,  194, 194, 110,  255, 102};   // 0,194,194,102 to 153,255
+    final static short[] GS = {    0,  105, 166,   0,  255, 178};   // 0,105,166,0,255
+    final static short[] BS = {    0,   82, 115,   0,  255, 255};   // 0,82,115,0,255
 
     @Override
     public BufferedImage map(int rows, int cols, short[] hu) {
@@ -36,7 +36,11 @@ public class HU2RGBMapperBySilverstein implements HUMapper {
             while (j < HS.length && HS[j] < hu[i]) {
                 j++;
             }
-            if (j == HS.length) {
+            if (j == 0) {
+                red = RS[0];
+                green = GS[0];
+                blue = BS[0];
+            } else if (j == HS.length) {
                 red = RS[HS.length - 1];
                 green = GS[HS.length - 1];
                 blue = BS[HS.length - 1];

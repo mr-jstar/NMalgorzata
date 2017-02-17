@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class RTG2GrayMapper implements HUMapper {
+public class RTG2GrayMapper implements PixelDataMapper {
 
     @Override
     public BufferedImage map(int rows, int cols, short[] rtg) {

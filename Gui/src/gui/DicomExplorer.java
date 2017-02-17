@@ -52,7 +52,7 @@ import mydicom.DicomTools;
 import mydicom.HU2GrayMapper;
 import mydicom.HU2RGBMapperByJstar;
 import mydicom.HU2RGBMapperBySilverstein;
-import mydicom.HUMapper;
+import mydicom.PixelDataMapper;
 import mydicom.RTG2GrayMapper;
 import org.apache.commons.io.FilenameUtils;
 
@@ -80,7 +80,7 @@ public class DicomExplorer extends javax.swing.JFrame {
     private BufferedImageOp negative;
     private BufferedImageOp sharpen;
     private BufferedImageOp laplace;
-    private final Map<JRadioButtonMenuItem, HUMapper> colorMappers = new HashMap<>();
+    private final Map<JRadioButtonMenuItem, PixelDataMapper> colorMappers = new HashMap<>();
 
     public DicomExplorer() {
         initComponents();
@@ -794,7 +794,7 @@ public class DicomExplorer extends javax.swing.JFrame {
             initialPath = (String) in.readObject();
             String mapperClass = (String) in.readObject();
             selectMapperByClassName(mapperClass);
-            HUMapper mpr = getActiveMapper();
+            PixelDataMapper mpr = getActiveMapper();
             int n = (Integer) in.readObject();
             DefaultListModel<DicomFileContent> model = new DefaultListModel<>();
             for (int i = 0; i < n; i++) {
@@ -984,7 +984,7 @@ public class DicomExplorer extends javax.swing.JFrame {
         updateStatus();
     }
 
-    private HUMapper getActiveMapper() {
+    private PixelDataMapper getActiveMapper() {
         for (JRadioButtonMenuItem b : colorMappers.keySet()) {
             if (b.isSelected()) {
                 return colorMappers.get(b);

@@ -22,35 +22,44 @@ import java.util.Objects;
 public class DicomFileContent implements Comparable<DicomFileContent>, Externalizable {
 
     private static final long serialVersionUID = 1L;
+    
+    public static final int UNKNOWN = 0;
+    public static final int CR = 1;
+    public static final int CT = 2;
 
     private BufferedImage image;
     private String name;
     private String fileData;
     private double sliceLocation;
-    private short[] hu;
-    private short hmin = 5000, hmax = -5000;
+    private int modality;
+    private short[] pixel_data;
+    private int rows, cols;
+    private short data_min = Short.MAX_VALUE, data_max = Short.MIN_VALUE;
     
     public DicomFileContent(ObjectInput in) throws IOException, ClassNotFoundException { 
         readExternal(in);
     }
 
-    public DicomFileContent(File file, double location, short[] hu, BufferedImage img)
+    public DicomFileContent(File file, double location, int modality, short[] pixel_data, BufferedImage img)
             throws Exception {
         this.name = file.getName();
         this.sliceLocation = location;
+        this.modality = modality;
         this.image = img;
+        this.cols = img.getWidth();
+        this.rows = img.getHeight();
         fileData = DicomTools.dataInf(file);
-        this.hu = hu;
-        calcHUminAndmax();
+        this.pixel_data = pixel_data;
+        calcDataMinAndMax();
     }
 
-    private void calcHUminAndmax() {
-        for (short l : hu) {
-            if (l < hmin) {
-                hmin = l;
+    private void calcDataMinAndMax() {
+        for (short l : pixel_data) {
+            if (l < data_min) {
+                data_min = l;
             }
-            if (l > hmax) {
-                hmax = l;
+            if (l > data_max) {
+                data_max = l;
             }
         }
     }
@@ -60,9 +69,10 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         out.writeObject(name);
         out.writeObject(fileData);
         out.writeObject(sliceLocation);
-        out.writeObject(hu);
-        out.writeObject(image.getWidth());  // cols
-        out.writeObject(image.getHeight()); // rows
+        out.writeObject(modality);
+        out.writeObject(pixel_data);
+        out.writeObject(cols); 
+        out.writeObject(rows); 
         //System.out.println( "Saved " + image.getWidth() + "x" + image.getHeight());
     }
 
@@ -71,25 +81,26 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         name = (String) in.readObject();
         fileData = (String) in.readObject();
         sliceLocation = (Double) in.readObject();
-        hu = (short[]) in.readObject();
-        int cols = (int) in.readObject();
-        int rows = (int) in.readObject();
+        modality = (Integer) in.readObject();
+        pixel_data = (short[]) in.readObject();
+        cols = (int) in.readObject();
+        rows = (int) in.readObject();
         //System.out.println( "Read " + cols + "x" + rows);
         image = new BufferedImage(cols, rows, BufferedImage.TYPE_BYTE_GRAY);
         //System.out.println( "Created " + image.getWidth() + "x" + image.getHeight());
-        calcHUminAndmax();
+        calcDataMinAndMax();
     }
 
-    public void updateImage(HUMapper mapper) {
+    public void updateImage(PixelDataMapper mapper) {
         if( image != null ) {
-            image = mapper.map(image.getHeight(), image.getWidth(), hu);
+            image = mapper.map(rows, cols, pixel_data);
         } else {
             throw new NullPointerException("DicomFileContent::updateImage: image is null, but can not be!");
         }
     }
 
     /**
-     * @return the item
+     * @return the image
      */
     public BufferedImage getImage() {
         return image;
@@ -115,23 +126,30 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
     public double getLocation() {
         return sliceLocation;
     }
+    
+    /**
+     * @return the modality
+     */
+    public int getModality() {
+        return modality;
+    }
 
     /**
      * @return the width
      */
     public double getWidth() {
-        return image.getWidth();
+        return cols;
     }
 
     /**
      * @return the height
      */
     public double getHeight() {
-        return image.getWidth();
+        return rows;
     }
 
     public AbstractMap.SimpleImmutableEntry<Short, Short> getHURange() {
-        return new AbstractMap.SimpleImmutableEntry<>(hmin, hmax);
+        return new AbstractMap.SimpleImmutableEntry<>(data_min, data_max);
     }
 
     @Override
