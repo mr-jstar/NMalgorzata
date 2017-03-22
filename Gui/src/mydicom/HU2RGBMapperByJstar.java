@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
  *
  * @author jstar
  */
-public class HU2RGBMapperByJstar implements PixelDataMapper {
+public class HU2RGBMapperByJstar implements PixelDataMapper {//nie wiem czy przypadkiem pixeldatamapper po to zeby połoczyc te wszystkie mappery
 
     // jstar wymyślał
     final static short[] HS = {-1001,   0, 100, 200, 1000, 1500, 4000};
@@ -21,7 +21,7 @@ public class HU2RGBMapperByJstar implements PixelDataMapper {
     final static short[] BS = {    0, 168, 168, 194,  255,  255,  255};
 
     @Override
-    public BufferedImage map(int rows, int cols, short[] hu) {
+    public BufferedImage map(int rows, int cols, short[] hu, int windowCenter, int windowWidth) {
         if (rows * cols != hu.length) {
             return null;
         }
