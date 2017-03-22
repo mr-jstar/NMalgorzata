@@ -14,7 +14,7 @@ import java.awt.image.BufferedImage;
 public class RTG2GrayMapper implements PixelDataMapper {
 
     @Override
-    public BufferedImage map(int rows, int cols, short[] rtg) {
+    public BufferedImage map(int rows, int cols, short[] rtg,int windowCenter, int windowWidth) {
         if (rows * cols != rtg.length) {
             return null;
         }
