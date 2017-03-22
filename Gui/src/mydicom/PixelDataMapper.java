@@ -8,9 +8,9 @@ package mydicom;
 import java.awt.image.BufferedImage;
 
 /**
- *
+ * 
  * @author jstar
  */
 public interface PixelDataMapper {
-    public BufferedImage map( int rows, int cols, short [] hu );
+    public BufferedImage map( int rows, int cols, short [] hu, int windowCenter, int windowWidth);
 }
