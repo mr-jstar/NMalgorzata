@@ -21,7 +21,7 @@ public class HU2RGBMapperBySilverstein implements PixelDataMapper {
     final static short[] BS = {    0,   82, 115,   0,  255, 255};   // 0,82,115,0,255
 
     @Override
-    public BufferedImage map(int rows, int cols, short[] hu) {
+    public BufferedImage map(int rows, int cols, short[] hu, int windowCenter, int windowWidth) {
         if (rows * cols != hu.length) {
             return null;
         }
