@@ -16,7 +16,7 @@ public class HU2GrayMapper implements PixelDataMapper {
     final static int MX = 2 * Short.MAX_VALUE;
 
     @Override
-    public BufferedImage map(int rows, int cols, short[] hu) {
+    public BufferedImage map(int rows, int cols, short[] hu, int windowCenter, int windowWidth) {
         if (rows * cols != hu.length) {
             return null;
         }
