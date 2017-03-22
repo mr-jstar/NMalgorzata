@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 public class DicomFileContent implements Comparable<DicomFileContent>, Externalizable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;//powiązane z serializacja
     
     public static final int UNKNOWN = 0;
     public static final int CR = 1;
@@ -35,24 +35,33 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
     private short[] pixel_data;
     private int rows, cols;
     private short data_min = Short.MAX_VALUE, data_max = Short.MIN_VALUE;
+//    private float rescaleSlope;
+//    private float rescaleIntercept;
+    private int windowCenter;
+    private int windowWidth;
     
     public DicomFileContent(ObjectInput in) throws IOException, ClassNotFoundException { 
         readExternal(in);
     }
 
-    public DicomFileContent(File file, double location, int modality, short[] pixel_data, BufferedImage img)
+    public DicomFileContent(File file, double location, int modality, short[] pixel_data, BufferedImage img, int windowCenter, int windowWidth)//, float slope,float intercept)
             throws Exception {
         this.name = file.getName();
         this.sliceLocation = location;
         this.modality = modality;
         this.image = img;
+////        this.rescaleSlope = slope;
+////        this.rescaleIntercept = intercept;
         this.cols = img.getWidth();
         this.rows = img.getHeight();
+        this.windowCenter = windowCenter;
+        this.windowWidth = windowWidth;
         fileData = DicomTools.dataInf(file);
         this.pixel_data = pixel_data;
         calcDataMinAndMax();
     }
-
+    
+// szukanie minimalnej i max wartosci pixeli
     private void calcDataMinAndMax() {
         for (short l : pixel_data) {
             if (l < data_min) {
@@ -71,8 +80,13 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         out.writeObject(sliceLocation);
         out.writeObject(modality);
         out.writeObject(pixel_data);
+//        out.writeObject(rescaleSlope);
+//        out.writeObject(rescaleIntercept);
+        out.writeObject(windowCenter);
+        out.writeObject(windowWidth);
         out.writeObject(cols); 
         out.writeObject(rows); 
+//        poprawna serializacja window
         //System.out.println( "Saved " + image.getWidth() + "x" + image.getHeight());
     }
 
@@ -83,6 +97,11 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         sliceLocation = (Double) in.readObject();
         modality = (Integer) in.readObject();
         pixel_data = (short[]) in.readObject();
+//        rescaleSlope=(float) in.readObject();
+//        rescaleIntercept = (float) in.readObject();
+        windowCenter =(int) in.readObject();
+        windowWidth = (int) in.readObject();
+        //deserializacja poprawne wartosci window
         cols = (int) in.readObject();
         rows = (int) in.readObject();
         //System.out.println( "Read " + cols + "x" + rows);
@@ -93,7 +112,8 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
 
     public void updateImage(PixelDataMapper mapper) {
         if( image != null ) {
-            image = mapper.map(rows, cols, pixel_data);
+            image = mapper.map(rows, cols, pixel_data, windowCenter, windowWidth);//,rescaleSlope,rescaleIntercept);
+            //odpowiednie windows
         } else {
             throw new NullPointerException("DicomFileContent::updateImage: image is null, but can not be!");
         }
@@ -148,6 +168,38 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
         return rows;
     }
     
+//    /**
+//     * 
+//     * @return the Rescale Slope
+//     */
+//    public float getrescaleSlope(){
+//        return rescaleSlope;
+//    }
+//    
+//    /**
+//     * 
+//     * @return the Rescale Intercept
+//     */
+//    public float getrescaleIntercept(){
+//        return rescaleIntercept;
+//    }
+    
+    /**
+     * 
+     * @return the Window Center
+     */
+    public int getwindowCenter(){
+        return windowCenter;
+    }
+    
+    /**
+     * 
+     * @return the Window Width 
+     */
+    public int getwindowWidth(){
+        return windowWidth;
+    }
+    
     public short getPixelData( int x, int y ) {
         if( x >= 0 && x < cols && y >= 0 && y <= rows )
             return pixel_data[ y*cols + x ];
@@ -155,8 +207,8 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
             return 0;
     }
 
-    public AbstractMap.SimpleImmutableEntry<Short, Short> getHURange() {
-        return new AbstractMap.SimpleImmutableEntry<>(data_min, data_max);
+    public AbstractMap.SimpleImmutableEntry<Short, Short> getHURange() {//<klucz,wartosc>
+        return new AbstractMap.SimpleImmutableEntry<>(data_min, data_max);//Tworzy wpis reprezentującą mapowanie z określonego klucza do określonej wartości.
     }
 
     @Override
@@ -177,7 +229,7 @@ public class DicomFileContent implements Comparable<DicomFileContent>, Externali
     }
 
     @Override
-    public int compareTo(DicomFileContent o) {
+    public int compareTo(DicomFileContent o) {//porównywanie obrazków na podstawie sliceLocation
         if (o.sliceLocation > sliceLocation) {
             return 1;
         } else if (o.sliceLocation < sliceLocation) {
