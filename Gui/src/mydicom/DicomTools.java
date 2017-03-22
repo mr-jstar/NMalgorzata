@@ -24,6 +24,7 @@ import org.dicom4j.io.media.DicomFile;
  */
 public class DicomTools {
 
+    //metoda stworzona do wyświtlenia wartości Dicom w patientData
     public static String dataInf(File file) throws Exception {
         String fileName = "File: " + file.getName();
         String creationDate = "";
@@ -151,6 +152,7 @@ public class DicomTools {
         }
     }
 
+    
     public static DicomFileContent openDicomFile(File file, PixelDataMapper mapper) throws Exception {
         BufferedImage bImg = null;
         int rows = 0; //tworzenie smiennej wiersz
@@ -158,6 +160,8 @@ public class DicomTools {
         float slope = 0;
         float intercept = 0;
         double location = 0;
+        int windowCenter =0;
+        int windowWidth = 0;
         short[] ldata = null;
         String modality = "";
         int modalityTag = DicomFileContent.UNKNOWN;
@@ -194,6 +198,12 @@ public class DicomTools {
             if (tagName.equals("Slice Location")) {
                 location = Double.parseDouble(lElement.getSingleStringValue());
             }
+            if (tagName.equals("Window Center")) {
+                windowCenter = Short.parseShort(lElement.getSingleStringValue());
+            }
+            if (tagName.equals("Window Width")) {
+                windowWidth = Short.parseShort(lElement.getSingleStringValue());
+            }
             if (tagName.equals("Pixel Data")) {
                 ldata = lElement.getShortValues();
                 if (rows * cols != ldata.length) {
@@ -205,36 +215,37 @@ public class DicomTools {
                     ldata[i] = (short) (ldata[i] * slope + intercept);
                 }
                 //bImg = (new HU2GrayMapper()).map(rows, cols, ldata);
-                bImg = mapper.map(rows, cols, ldata);
+//                dobrew wartości windows!!!!!!
+                bImg = mapper.map(rows, cols, ldata, windowCenter, windowWidth);
             }
         }
-        return bImg == null ? null : new DicomFileContent(file, location, modalityTag, ldata, bImg);
+        return bImg == null ? null : new DicomFileContent(file, location, modalityTag, ldata, bImg, windowCenter, windowWidth);//,slope,intercept);
     }
 
-    // Wyświetla strukturę Dicoma do standardowego wyjścia
-    public static String reportDCM(String fname) throws Exception {
-        DicomFile ldcm = new DicomFile(fname);
-        ldcm.open();
-        Iterator iterator = ldcm.getDataset().getIterator();
-        while (iterator.hasNext()) {
-            DataElement lElement = (DataElement) iterator.next();
-            System.out.print(lElement.getTag().getName() + "(" + lElement.getClass().getSimpleName() + ") -> ");
-            if (lElement.isAvailableAsString()) {
-                System.out.print(" { ");
-                String[] ldata = lElement.getStringValues();
-                for (int j = 0; j < ldata.length; j++) {
-                    System.out.print(" [" + j + "]=" + ldata[j]);
-                }
-                System.out.println(" }");
-            } else {
-                try {
-                    short[] ldata = lElement.getShortValues();
-                    System.out.println(ldata.length + " ints");
-                } catch (Exception e) {
-                    System.out.println("not as short nor as String");
-                }
-            }
-        }
-        return fname;
-    }
+//    // Wyświetla strukturę Dicoma do standardowego wyjścia
+//    public static String reportDCM(String fname) throws Exception {
+//        DicomFile ldcm = new DicomFile(fname);
+//        ldcm.open();
+//        Iterator iterator = ldcm.getDataset().getIterator();
+//        while (iterator.hasNext()) {
+//            DataElement lElement = (DataElement) iterator.next();
+//            System.out.print(lElement.getTag().getName() + "(" + lElement.getClass().getSimpleName() + ") -> ");
+//            if (lElement.isAvailableAsString()) {
+//                System.out.print(" { ");
+//                String[] ldata = lElement.getStringValues();
+//                for (int j = 0; j < ldata.length; j++) {
+//                    System.out.print(" [" + j + "]=" + ldata[j]);
+//                }
+//                System.out.println(" }");
+//            } else {
+//                try {
+//                    short[] ldata = lElement.getShortValues();
+//                    System.out.println(ldata.length + " ints");
+//                } catch (Exception e) {
+//                    System.out.println("not as short nor as String");
+//                }
+//            }
+//        }
+//        return fname;
+//    }
 }
